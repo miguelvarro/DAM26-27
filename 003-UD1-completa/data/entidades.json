@@ -1,0 +1,10 @@
+[
+  { "texto": "Listado",          "vista": "listado",    "activo": true },
+  { "texto": "Formulario",       "vista": "formulario" },
+  { "texto": "Controles",        "vista": "controles" },
+  { "texto": "Eventos",          "vista": "eventos" },
+  { "texto": "Toasts",           "vista": "toasts" },
+  { "texto": "Modal y panel",    "vista": "modal" },
+  { "texto": "Login",            "vista": "login" },
+  { "texto": "Identidad",        "vista": "identidad" }
+]

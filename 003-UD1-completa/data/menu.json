@@ -1,0 +1,19 @@
+[
+  {
+    "texto": "Clientes",
+    "tabla": "data/clientes.json",
+    "formulario": "data/datos.json",
+    "activo": true
+  },
+  {
+    "texto": "Productos",
+    "tabla": "data/productos.json",
+    "formulario": "data/productos.json"
+  },
+  {
+    "texto": "Pedidos"
+  },
+  {
+    "texto": "Configuración"
+  }
+]
