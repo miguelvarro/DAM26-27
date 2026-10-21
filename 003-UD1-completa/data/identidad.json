@@ -1,0 +1,23 @@
+{
+  "nombre": "mavr | interfaz integrada",
+  "lema": "Una interfaz serena, cercana y redondeada para trabajar sin ruido visual.",
+  "colores": [
+    { "variable": "--negro",        "nombre": "Grafito",        "significado": "Seriedad y profesionalidad. Base de la cabecera y del menú principal." },
+    { "variable": "--naranja",      "nombre": "Naranja suave",  "significado": "Energía y acción. Solo se usa para lo que se puede pulsar o lo que está activo." },
+    { "variable": "--naranja-claro","nombre": "Melocotón",      "significado": "Acompaña al naranja en fondos y estados de foco sin cansar la vista." },
+    { "variable": "--crema",        "nombre": "Crema",          "significado": "Calidez y lectura cómoda en el escenario de trabajo." },
+    { "variable": "--seccion",      "nombre": "Arena",          "significado": "Separa la columna de vistas del escenario sin usar líneas duras." }
+  ],
+  "tipografia": {
+    "familia": "Ubuntu, Segoe UI, Roboto, Arial, sans-serif",
+    "motivo": "Tipografía de palo seco, redondeada y muy legible en pantalla."
+  },
+  "formas": {
+    "radio": "Esquinas redondeadas en tarjetas, botones en forma de píldora y fichas circulares.",
+    "motivo": "Las formas redondas transmiten cercanía y suavizan una paleta oscura."
+  },
+  "logo": {
+    "archivo": "img/logo.svg",
+    "motivo": "La M de mavr dentro de un cuadrado redondeado con el color de acción de la marca."
+  }
+}
