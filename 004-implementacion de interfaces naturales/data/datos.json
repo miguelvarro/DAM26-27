@@ -1,0 +1,142 @@
+{
+  "campos": [
+    {
+      "nombre": "id",
+      "etiqueta": "ID",
+      "tipo": "number"
+    },
+    {
+      "nombre": "nombre",
+      "etiqueta": "Nombre",
+      "tipo": "text"
+    },
+    {
+      "nombre": "apellidos",
+      "etiqueta": "Apellidos",
+      "tipo": "text"
+    },
+    {
+      "nombre": "email",
+      "etiqueta": "Correo electrónico",
+      "tipo": "email"
+    },
+    {
+      "nombre": "telefono",
+      "etiqueta": "Teléfono",
+      "tipo": "tel"
+    },
+    {
+      "nombre": "fecha_nacimiento",
+      "etiqueta": "Fecha de nacimiento",
+      "tipo": "date"
+    },
+    {
+      "nombre": "numero_empleados",
+      "etiqueta": "Número de empleados",
+      "tipo": "number"
+    },
+    {
+      "nombre": "facturacion",
+      "etiqueta": "Facturación anual",
+      "tipo": "number"
+    },
+    {
+      "nombre": "web",
+      "etiqueta": "Página web",
+      "tipo": "url"
+    },
+    {
+      "nombre": "tipo_cliente",
+      "etiqueta": "Tipo de cliente",
+      "tipo": "select",
+      "opciones": [
+        "Particular",
+        "Autónomo",
+        "Empresa",
+        "Administración"
+      ]
+    },
+    {
+      "nombre": "activo",
+      "etiqueta": "Cliente activo",
+      "tipo": "checkbox"
+    },
+    {
+      "nombre": "observaciones",
+      "etiqueta": "Observaciones",
+      "tipo": "textarea"
+    }
+  ],
+  "datos": [
+    {
+      "id": 1,
+      "nombre": "Laura",
+      "apellidos": "Martínez García",
+      "email": "laura.martinez@example.com",
+      "telefono": "612345678",
+      "fecha_nacimiento": "1987-04-12",
+      "numero_empleados": 1,
+      "facturacion": 42000,
+      "web": "https://example.com/laura",
+      "tipo_cliente": "Autónomo",
+      "activo": true,
+      "observaciones": "Cliente desde 2023."
+    },
+    {
+      "id": 2,
+      "nombre": "Carlos",
+      "apellidos": "Sánchez López",
+      "email": "carlos.sanchez@example.com",
+      "telefono": "623456789",
+      "fecha_nacimiento": "1979-11-03",
+      "numero_empleados": 18,
+      "facturacion": 380000,
+      "web": "https://example.com/carlos",
+      "tipo_cliente": "Empresa",
+      "activo": true,
+      "observaciones": "Interesado en servicios de desarrollo."
+    },
+    {
+      "id": 3,
+      "nombre": "Marta",
+      "apellidos": "Ruiz Navarro",
+      "email": "marta.ruiz@example.com",
+      "telefono": "634567890",
+      "fecha_nacimiento": "1992-07-21",
+      "numero_empleados": 1,
+      "facturacion": 31500,
+      "web": "https://example.com/marta",
+      "tipo_cliente": "Particular",
+      "activo": false,
+      "observaciones": "Actualmente sin proyectos activos."
+    },
+    {
+      "id": 4,
+      "nombre": "Javier",
+      "apellidos": "Torres Romero",
+      "email": "javier.torres@example.com",
+      "telefono": "645678901",
+      "fecha_nacimiento": "1984-02-15",
+      "numero_empleados": 42,
+      "facturacion": 920000,
+      "web": "https://example.com/javier",
+      "tipo_cliente": "Empresa",
+      "activo": true,
+      "observaciones": "Solicita mantenimiento periódico."
+    },
+    {
+      "id": 5,
+      "nombre": "Ana",
+      "apellidos": "Gómez Pérez",
+      "email": "ana.gomez@example.com",
+      "telefono": "656789012",
+      "fecha_nacimiento": "1990-09-28",
+      "numero_empleados": 6,
+      "facturacion": 125000,
+      "web": "https://example.com/ana",
+      "tipo_cliente": "Autónomo",
+      "activo": true,
+      "observaciones": "Contacto preferente por correo electrónico."
+    }
+  ]
+}

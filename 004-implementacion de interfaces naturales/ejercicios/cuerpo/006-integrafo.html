@@ -1,0 +1,852 @@
+<!doctype html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8">
+  <title>mavr | Avatar con chat</title>
+
+  <style>
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      background:#222;
+      color:white;
+      font-family:monospace;
+    }
+
+    h1{
+      text-align:center;
+    }
+
+    #pantalla{
+      display:flex;
+      width:1280px;
+      max-width:100%;
+      height:480px;
+      margin:auto;
+      border:1px solid #555;
+    }
+
+    .mitad{
+      position:relative;
+      width:50%;
+      height:480px;
+      overflow:hidden;
+    }
+
+    #webcam{
+      background:black;
+    }
+
+    #avatar{
+      background:#eee;
+    }
+
+    video,
+    canvas{
+      position:absolute;
+      left:0;
+      top:0;
+      width:100%;
+      height:480px;
+    }
+
+    video{
+      opacity:0;
+    }
+
+    canvas{
+      z-index:2;
+    }
+
+    .titulo{
+      position:absolute;
+      z-index:10;
+      left:10px;
+      top:10px;
+      background:#000a;
+      padding:8px 12px;
+      border-radius:5px;
+      pointer-events:none;
+    }
+  
+
+    #controlesChat{max-width:1280px;margin:14px auto;display:flex;gap:10px;padding:0 10px;}
+    #textoUsuario{flex:1;padding:12px;border-radius:8px;border:1px solid #666;background:#111;color:white;}
+    #enviar,#microfono{padding:12px 18px;border:0;border-radius:8px;background:dodgerblue;color:white;cursor:pointer;}
+    #conversacion{max-width:1280px;height:180px;margin:0 auto 20px;padding:12px;overflow:auto;background:#111;border:1px solid #555;border-radius:8px;}
+    .mensaje{margin:7px 0;padding:8px 12px;border-radius:10px;max-width:75%;}
+    .yo{margin-left:auto;background:dodgerblue;}
+    .maquina{background:#333;}
+  </style>
+  <link rel="icon" href="../../img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../css/ejercicios.css">
+</head>
+
+<body class="mv-ej mv-ej-dividido">
+
+<header class="mv-ej-cabecera"><img src="../../img/logo.svg" alt=""><span class="marca">mavr | interfaz integrada</span><h1>Avatar con chat</h1><a class="mv-ej-volver" href="../index.html">← Ejercicios</a></header>
+
+<div id="pantalla">
+
+  <div class="mitad" id="webcam">
+    <div class="titulo">Webcam</div>
+
+    <video
+      id="video"
+      width="640"
+      height="480"
+      autoplay
+      muted
+      playsinline>
+    </video>
+
+    <canvas
+      id="canvasWebcam"
+      width="640"
+      height="480">
+    </canvas>
+  </div>
+
+  <div class="mitad" id="avatar">
+    <div class="titulo">Sprite interpolado</div>
+
+    <canvas
+      id="canvasSprite"
+      width="640"
+      height="480">
+    </canvas>
+  </div>
+
+</div>
+
+
+<div id="controlesChat">
+  <input id="textoUsuario" placeholder="Escribe o pulsa el micrófono para hablar con el avatar...">
+  <button id="enviar">Enviar</button>
+  <button id="microfono">🎤</button>
+</div>
+<div id="conversacion"><div class="mensaje maquina">Hola, soy tu avatar. ¿En qué puedo ayudarte?</div></div>
+
+<script type="module">
+
+import {
+  FaceDetector,
+  FilesetResolver
+} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
+
+
+// ======================================================
+// ELEMENTOS
+// ======================================================
+
+const video = document.querySelector("#video");
+
+const canvasWebcam =
+  document.querySelector("#canvasWebcam");
+
+const ctx =
+  canvasWebcam.getContext("2d");
+
+const canvasSprite =
+  document.querySelector("#canvasSprite");
+
+const ctxSprite =
+  canvasSprite.getContext("2d");
+
+
+// ======================================================
+// SPRITESHEET
+// Debe ser una imagen 5x5 llamada spritesheet.png
+// ======================================================
+
+const spritesheet = new Image();
+
+spritesheet.src = "spritesheet.png";
+
+await new Promise((resolve,reject) => {
+
+  spritesheet.onload = resolve;
+
+  spritesheet.onerror = () => {
+    reject(
+      new Error(
+        "No se ha podido cargar spritesheet.png"
+      )
+    );
+  };
+
+});
+
+console.log(
+  "Spritesheet:",
+  spritesheet.width,
+  spritesheet.height
+);
+
+
+// ======================================================
+// CONFIGURACIÓN DEL SPRITESHEET
+// ======================================================
+
+const COLUMNAS = 5;
+const FILAS = 5;
+
+const spriteW =
+  spritesheet.width / COLUMNAS;
+
+const spriteH =
+  spritesheet.height / FILAS;
+
+
+// ======================================================
+// WEBCAM
+// ======================================================
+
+const stream =
+  await navigator.mediaDevices.getUserMedia({
+
+    video:{
+      width:640,
+      height:480
+    }
+
+  });
+
+video.srcObject = stream;
+
+await video.play();
+
+console.log("Webcam funcionando");
+
+
+// ======================================================
+// MEDIAPIPE
+// ======================================================
+
+const vision =
+  await FilesetResolver.forVisionTasks(
+
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+
+  );
+
+
+const detector =
+  await FaceDetector.createFromOptions(
+
+    vision,
+
+    {
+
+      baseOptions:{
+
+        modelAssetPath:
+        "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/latest/blaze_face_short_range.tflite"
+
+      },
+
+      runningMode:"VIDEO",
+
+      minDetectionConfidence:0.5
+
+    }
+
+  );
+
+console.log("MediaPipe cargado");
+
+
+// ======================================================
+// SUAVIZADO DE LA POSICIÓN
+// Reduce el temblor del detector.
+// 0.05 = muy suave/lento
+// 0.15 = suave
+// 0.30 = más rápido
+// 1.00 = sin suavizado
+// ======================================================
+
+const SUAVIZADO = 0.15;
+
+let cxSuave = null;
+let cySuave = null;
+
+
+// ======================================================
+// DIBUJAR UNA CAPA DEL SPRITE
+// ======================================================
+
+function dibujarCapa(fila, columna, alpha){
+
+  if(alpha <= 0){
+    return;
+  }
+
+  const sx =
+    columna * spriteW;
+
+  const sy =
+    fila * spriteH;
+
+
+  const escala = Math.min(
+
+    canvasSprite.width / spriteW,
+    canvasSprite.height / spriteH
+
+  );
+
+
+  const ancho =
+    spriteW * escala;
+
+  const alto =
+    spriteH * escala;
+
+
+  const dx =
+    (canvasSprite.width - ancho) / 2;
+
+  const dy =
+    (canvasSprite.height - alto) / 2;
+
+
+  ctxSprite.globalAlpha = alpha;
+
+  ctxSprite.drawImage(
+
+    spritesheet,
+
+    sx,
+    sy,
+    spriteW,
+    spriteH,
+
+    dx,
+    dy,
+    ancho,
+    alto
+
+  );
+}
+
+
+// ======================================================
+// TRANSICIÓN SOLO CERCA DE LOS LÍMITES ENTRE SECTORES
+// El interior de cada celda muestra un único sprite.
+// Solo se hace fade en una banda alrededor de cada frontera.
+// ======================================================
+
+const ZONA_FADE = 0.18; // fracción de celda a cada lado del límite (0..0.5)
+
+function mezclaEje(pos){
+  pos = Math.max(0, Math.min(4.999999, pos));
+  const base = Math.floor(pos);
+  const local = pos - base;
+
+  // Cerca del borde izquierdo: mezcla con la celda anterior.
+  if(base > 0 && local < ZONA_FADE){
+    const t = local / ZONA_FADE;
+    return {a:base-1, b:base, t:t};
+  }
+
+  // Cerca del borde derecho: mezcla con la celda siguiente.
+  if(base < 4 && local > 1-ZONA_FADE){
+    const t = (local-(1-ZONA_FADE)) / ZONA_FADE;
+    return {a:base, b:base+1, t:t};
+  }
+
+  // Interior: sin fade.
+  return {a:base, b:base, t:0};
+}
+
+function dibujarSpritePorZonas(filaPos, columnaPos){
+  ctxSprite.clearRect(0,0,canvasSprite.width,canvasSprite.height);
+
+  const mx = mezclaEje(columnaPos);
+  const my = mezclaEje(filaPos);
+
+  // Si solo un eje está en transición, realmente se mezclan 2 sprites.
+  // En la intersección de dos fronteras pueden intervenir 4.
+  const pesos = [
+    [my.a, mx.a, (1-my.t)*(1-mx.t)],
+    [my.a, mx.b, (1-my.t)*mx.t],
+    [my.b, mx.a, my.t*(1-mx.t)],
+    [my.b, mx.b, my.t*mx.t]
+  ];
+
+  const acumulados = new Map();
+  for(const [f,c,p] of pesos){
+    if(p <= 0) continue;
+    const k=f+','+c;
+    acumulados.set(k,(acumulados.get(k)||0)+p);
+  }
+  for(const [k,peso] of acumulados){
+    const [f,c]=k.split(',').map(Number);
+    dibujarCapa(f,c,peso);
+  }
+  ctxSprite.globalAlpha=1;
+
+  ctxSprite.fillStyle='rgba(36,38,43,0.78)';
+  ctxSprite.fillRect(10,410,350,60);
+  ctxSprite.fillStyle='white';
+  ctxSprite.font='14px monospace';
+  ctxSprite.fillText('Sector: '+Math.floor(columnaPos)+','+Math.floor(filaPos),20,434);
+  ctxSprite.fillText('Fade límite X: '+mx.t.toFixed(2)+'  Y: '+my.t.toFixed(2),20,457);
+}
+
+// ======================================================
+// SPRITE INICIAL
+// ======================================================
+
+dibujarSpritePorZonas(2.5,2.5);
+
+
+// ======================================================
+// LOOP
+// ======================================================
+
+function detectar(){
+
+
+  // ====================================================
+  // WEBCAM
+  // ====================================================
+
+  ctx.drawImage(
+
+    video,
+
+    0,
+    0,
+    canvasWebcam.width,
+    canvasWebcam.height
+
+  );
+
+
+  // ====================================================
+  // DETECTAR CARA
+  // ====================================================
+
+  const resultado =
+    detector.detectForVideo(
+
+      video,
+      performance.now()
+
+    );
+
+
+  // ====================================================
+  // GRID 5x5
+  // ====================================================
+
+  const sectorW =
+    canvasWebcam.width / 5;
+
+  const sectorH =
+    canvasWebcam.height / 5;
+
+
+  ctx.strokeStyle =
+    "rgba(255,255,255,0.35)";
+
+  ctx.lineWidth = 1;
+
+
+  for(let i=1;i<5;i++){
+
+    const x =
+      i * sectorW;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      x,
+      0
+    );
+
+    ctx.lineTo(
+      x,
+      canvasWebcam.height
+    );
+
+    ctx.stroke();
+
+  }
+
+
+  for(let i=1;i<5;i++){
+
+    const y =
+      i * sectorH;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      0,
+      y
+    );
+
+    ctx.lineTo(
+      canvasWebcam.width,
+      y
+    );
+
+    ctx.stroke();
+
+  }
+
+
+  // ====================================================
+  // SI HAY CARA
+  // ====================================================
+
+  if(resultado.detections.length > 0){
+
+    const cara =
+      resultado.detections[0];
+
+    const caja =
+      cara.boundingBox;
+
+
+    const x =
+      caja.originX;
+
+    const y =
+      caja.originY;
+
+    const w =
+      caja.width;
+
+    const h =
+      caja.height;
+
+
+    // centro real detectado
+
+    const cx =
+      x + w/2;
+
+    const cy =
+      y + h/2;
+
+
+    // ==================================================
+    // SUAVIZAR CENTRO
+    // ==================================================
+
+    if(cxSuave === null){
+
+      cxSuave = cx;
+      cySuave = cy;
+
+    }else{
+
+      cxSuave +=
+        (cx - cxSuave) *
+        SUAVIZADO;
+
+      cySuave +=
+        (cy - cySuave) *
+        SUAVIZADO;
+
+    }
+
+
+    // ==================================================
+    // POSICIÓN DECIMAL DENTRO DEL 5x5
+    //
+    // El centro de cada sector coincide exactamente
+    // con un sprite entero:
+    //
+    // centro pantalla => 2,2
+    // ==================================================
+
+    let columna = cxSuave / canvasWebcam.width * 5;
+    let fila = cySuave / canvasWebcam.height * 5;
+
+
+    columna =
+      Math.max(
+        0,
+        Math.min(4.999999,columna)
+      );
+
+    fila =
+      Math.max(
+        0,
+        Math.min(4.999999,fila)
+      );
+
+
+    // ==================================================
+    // SECTOR PRINCIPAL PARA DEBUG
+    // ==================================================
+
+    const columnaSector =
+      Math.max(
+        0,
+        Math.min(
+          4,
+          Math.floor(
+            cxSuave / sectorW
+          )
+        )
+      );
+
+    const filaSector =
+      Math.max(
+        0,
+        Math.min(
+          4,
+          Math.floor(
+            cySuave / sectorH
+          )
+        )
+      );
+
+
+    // ==================================================
+    // DESTACAR SECTOR
+    // ==================================================
+
+    ctx.fillStyle =
+      "rgba(236,138,75,0.12)";
+
+    ctx.fillRect(
+
+      columnaSector * sectorW,
+      filaSector * sectorH,
+
+      sectorW,
+      sectorH
+
+    );
+
+
+    // ==================================================
+    // BOUNDING BOX
+    // ==================================================
+
+    ctx.strokeStyle =
+      "#ec8a4b";
+
+    ctx.lineWidth = 3;
+
+    ctx.strokeRect(
+      x,
+      y,
+      w,
+      h
+    );
+
+
+    // ==================================================
+    // CENTRO REAL
+    // ==================================================
+
+    ctx.fillStyle =
+      "#c95b5b";
+
+    ctx.beginPath();
+
+    ctx.arc(
+      cx,
+      cy,
+      5,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    // ==================================================
+    // CENTRO SUAVIZADO
+    // ==================================================
+
+    ctx.fillStyle =
+      "#fcebdd";
+
+    ctx.beginPath();
+
+    ctx.arc(
+      cxSuave,
+      cySuave,
+      7,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    // cruz
+
+    ctx.strokeStyle =
+      "#fcebdd";
+
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      cxSuave-20,
+      cySuave
+    );
+
+    ctx.lineTo(
+      cxSuave+20,
+      cySuave
+    );
+
+    ctx.moveTo(
+      cxSuave,
+      cySuave-20
+    );
+
+    ctx.lineTo(
+      cxSuave,
+      cySuave+20
+    );
+
+    ctx.stroke();
+
+
+    // ==================================================
+    // DEBUG WEBCAM
+    // ==================================================
+
+    ctx.fillStyle =
+      "rgba(36,38,43,0.78)";
+
+    ctx.fillRect(
+      10,
+      390,
+      300,
+      80
+    );
+
+
+    ctx.fillStyle =
+      "white";
+
+    ctx.font =
+      "14px monospace";
+
+
+    ctx.fillText(
+      "Centro: " +
+      Math.round(cxSuave) +
+      ", " +
+      Math.round(cySuave),
+      20,
+      415
+    );
+
+
+    ctx.fillText(
+      "Sprite X: " +
+      columna.toFixed(2),
+      20,
+      438
+    );
+
+
+    ctx.fillText(
+      "Sprite Y: " +
+      fila.toFixed(2),
+      20,
+      461
+    );
+
+
+    // ==================================================
+    // SPRITE CON FADE
+    // ==================================================
+
+    dibujarSpritePorZonas(fila,columna);
+
+  }
+
+
+  requestAnimationFrame(
+    detectar
+  );
+
+}
+
+
+// ======================================================
+// CHATBOT OLLAMA + VOZ: EL AVATAR ES LA INTERFAZ
+// ======================================================
+const textoUsuario=document.querySelector('#textoUsuario');
+const conversacion=document.querySelector('#conversacion');
+const btnEnviar=document.querySelector('#enviar');
+const btnMicro=document.querySelector('#microfono');
+
+function bocadillo(texto,quien){
+  const d=document.createElement('div');
+  d.className='mensaje '+quien;
+  d.textContent=texto;
+  conversacion.appendChild(d);
+  conversacion.scrollTop=conversacion.scrollHeight;
+  return d;
+}
+
+async function preguntar(texto){
+  texto=texto.trim();
+  if(!texto) return;
+  bocadillo(texto,'yo');
+  textoUsuario.value='';
+  const pensando=bocadillo('Pensando...','maquina');
+  try{
+    const r=await fetch('../../ollama.php',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({mensaje:texto})
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const datos=await r.json();
+    pensando.remove();
+    const respuesta=datos.respuesta || 'No he podido responder.';
+    bocadillo(respuesta,'maquina');
+    speechSynthesis.cancel();
+    const voz=new SpeechSynthesisUtterance(respuesta);
+    voz.lang='es-ES';
+    speechSynthesis.speak(voz);
+  }catch(e){
+    pensando.remove();
+    console.error(e);
+    bocadillo('No he podido conectar con Ollama.','maquina');
+  }
+}
+
+btnEnviar.onclick=()=>preguntar(textoUsuario.value);
+textoUsuario.addEventListener('keydown',e=>{if(e.key==='Enter') preguntar(textoUsuario.value);});
+btnMicro.onclick=()=>{
+  const SR=window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ bocadillo('Este navegador no dispone de SpeechRecognition.','maquina'); return; }
+  const rec=new SR();
+  rec.lang='es-ES';
+  rec.onresult=e=>preguntar(e.results[0][0].transcript);
+  rec.onerror=e=>console.error('SpeechRecognition:',e.error);
+  rec.start();
+};
+
+// ======================================================
+// START
+// ======================================================
+
+detectar();
+
+</script>
+
+</body>
+</html>

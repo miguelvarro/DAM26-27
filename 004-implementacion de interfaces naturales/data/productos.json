@@ -1,0 +1,123 @@
+{
+  "campos": [
+    {
+      "nombre": "id",
+      "etiqueta": "ID",
+      "tipo": "number"
+    },
+    {
+      "nombre": "nombre",
+      "etiqueta": "Nombre del producto",
+      "tipo": "text"
+    },
+    {
+      "nombre": "descripcion",
+      "etiqueta": "Descripción",
+      "tipo": "textarea"
+    },
+    {
+      "nombre": "categoria",
+      "etiqueta": "Categoría",
+      "tipo": "select",
+      "opciones": [
+        "Informática",
+        "Periféricos",
+        "Telefonía",
+        "Oficina",
+        "Almacenamiento"
+      ]
+    },
+    {
+      "nombre": "precio",
+      "etiqueta": "Precio",
+      "tipo": "number"
+    },
+    {
+      "nombre": "stock",
+      "etiqueta": "Stock",
+      "tipo": "number"
+    },
+    {
+      "nombre": "fecha_alta",
+      "etiqueta": "Fecha de alta",
+      "tipo": "date"
+    },
+    {
+      "nombre": "fabricante",
+      "etiqueta": "Fabricante",
+      "tipo": "text"
+    },
+    {
+      "nombre": "web",
+      "etiqueta": "Página del producto",
+      "tipo": "url"
+    },
+    {
+      "nombre": "disponible",
+      "etiqueta": "Disponible",
+      "tipo": "checkbox"
+    }
+  ],
+  "datos": [
+    {
+      "id": 1,
+      "nombre": "Portátil ProBook 15",
+      "descripcion": "Portátil profesional de 15 pulgadas para oficina y desarrollo.",
+      "categoria": "Informática",
+      "precio": 749.99,
+      "stock": 12,
+      "fecha_alta": "2026-01-15",
+      "fabricante": "TechNova",
+      "web": "https://example.com/probook15",
+      "disponible": true
+    },
+    {
+      "id": 2,
+      "nombre": "Monitor UltraView 27",
+      "descripcion": "Monitor IPS de 27 pulgadas con resolución 2560x1440.",
+      "categoria": "Informática",
+      "precio": 229.90,
+      "stock": 25,
+      "fecha_alta": "2026-02-03",
+      "fabricante": "UltraView",
+      "web": "https://example.com/ultraview27",
+      "disponible": true
+    },
+    {
+      "id": 3,
+      "nombre": "Teclado Mecánico K500",
+      "descripcion": "Teclado mecánico USB para programación y uso intensivo.",
+      "categoria": "Periféricos",
+      "precio": 79.95,
+      "stock": 40,
+      "fecha_alta": "2026-02-20",
+      "fabricante": "KeyMaster",
+      "web": "https://example.com/k500",
+      "disponible": true
+    },
+    {
+      "id": 4,
+      "nombre": "SSD Portable 2 TB",
+      "descripcion": "Unidad SSD externa USB-C de alta velocidad.",
+      "categoria": "Almacenamiento",
+      "precio": 149.50,
+      "stock": 18,
+      "fecha_alta": "2026-03-12",
+      "fabricante": "DataFast",
+      "web": "https://example.com/ssd2tb",
+      "disponible": true
+    },
+    {
+      "id": 5,
+      "nombre": "Smartphone Nova X",
+      "descripcion": "Teléfono móvil con pantalla OLED y 256 GB de almacenamiento.",
+      "categoria": "Telefonía",
+      "precio": 499.00,
+      "stock": 0,
+      "fecha_alta": "2026-04-08",
+      "fabricante": "NovaMobile",
+      "web": "https://example.com/novax",
+      "disponible": false
+    }
+  ]
+}

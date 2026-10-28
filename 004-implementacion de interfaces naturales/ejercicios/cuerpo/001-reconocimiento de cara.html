@@ -1,0 +1,328 @@
+<!doctype html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8">
+  <title>mavr | Reconocimiento de cara</title>
+
+  <style>
+    body{
+      background:#222;
+      color:white;
+      font-family:monospace;
+    }
+
+    #contenedor{
+      position:relative;
+      width:640px;
+      height:480px;
+    }
+
+    video,
+    canvas{
+      position:absolute;
+      left:0;
+      top:0;
+      width:640px;
+      height:480px;
+    }
+
+    video{
+      opacity:0;
+    }
+
+    canvas{
+      z-index:2;
+    }
+  </style>
+  <link rel="icon" href="../../img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../css/ejercicios.css">
+</head>
+
+<body class="mv-ej mv-ej-camara">
+
+  <header class="mv-ej-cabecera"><img src="../../img/logo.svg" alt=""><span class="marca">mavr | interfaz integrada</span><h1>Reconocimiento de cara</h1><a class="mv-ej-volver" href="../index.html">← Ejercicios</a></header>
+
+  <div id="contenedor">
+    <video
+      id="video"
+      width="640"
+      height="480"
+      autoplay
+      muted
+      playsinline>
+    </video>
+
+    <canvas
+      id="canvas"
+      width="640"
+      height="480">
+    </canvas>
+  </div>
+
+
+  <script type="module">
+
+    import {
+      FaceDetector,
+      FilesetResolver
+    } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
+
+
+    const video = document.querySelector("#video");
+    const canvas = document.querySelector("#canvas");
+    const ctx = canvas.getContext("2d");
+
+
+    // ============================================
+    // 1. WEBCAM
+    // ============================================
+
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video:{
+        width:640,
+        height:480
+      }
+    });
+
+    video.srcObject = stream;
+
+    await video.play();
+
+    console.log("Webcam funcionando");
+    console.log(
+      "Resolución:",
+      video.videoWidth,
+      video.videoHeight
+    );
+
+
+    // ============================================
+    // 2. MEDIAPIPE
+    // ============================================
+
+    const vision = await FilesetResolver.forVisionTasks(
+      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+    );
+
+
+    const detector = await FaceDetector.createFromOptions(
+      vision,
+      {
+        baseOptions:{
+          modelAssetPath:
+          "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/latest/blaze_face_short_range.tflite"
+        },
+
+        runningMode:"VIDEO",
+
+        minDetectionConfidence:0.5
+      }
+    );
+
+
+    console.log("MediaPipe cargado");
+
+
+    // ============================================
+    // 3. LOOP
+    // ============================================
+
+    function detectar(){
+
+      // Dibujar webcam
+      ctx.drawImage(
+        video,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+
+
+      // Detectar caras
+      const resultado = detector.detectForVideo(
+        video,
+        performance.now()
+      );
+
+
+      // ============================================
+      // DEBUG GLOBAL
+      // ============================================
+
+      ctx.fillStyle = "rgba(36,38,43,0.78)";
+      ctx.fillRect(10,10,150,50);
+
+      ctx.fillStyle = "white";
+      ctx.font = "14px monospace";
+
+      ctx.fillText(
+        "Faces: " + resultado.detections.length,
+        20,
+        32
+      );
+
+      ctx.fillText(
+        "Video: " + video.readyState,
+        20,
+        52
+      );
+
+
+      // ============================================
+      // CARAS
+      // ============================================
+
+      for(const cara of resultado.detections){
+
+        const caja = cara.boundingBox;
+
+        const x = caja.originX;
+        const y = caja.originY;
+        const w = caja.width;
+        const h = caja.height;
+
+        const cx = x + w/2;
+        const cy = y + h/2;
+
+
+        // ------------------------------------------
+        // Bounding box
+        // ------------------------------------------
+
+        ctx.strokeStyle = "#ec8a4b";
+        ctx.lineWidth = 3;
+
+        ctx.strokeRect(
+          x,
+          y,
+          w,
+          h
+        );
+
+
+        // ------------------------------------------
+        // Diagonales
+        // ------------------------------------------
+
+        ctx.strokeStyle = "#ec8a4b";
+        ctx.lineWidth = 1;
+
+        ctx.beginPath();
+
+        ctx.moveTo(x,y);
+        ctx.lineTo(x+w,y+h);
+
+        ctx.moveTo(x+w,y);
+        ctx.lineTo(x,y+h);
+
+        ctx.stroke();
+
+
+        // ------------------------------------------
+        // Centro
+        // ------------------------------------------
+
+        ctx.strokeStyle = "#fcebdd";
+
+        ctx.beginPath();
+
+        ctx.moveTo(cx-20,cy);
+        ctx.lineTo(cx+20,cy);
+
+        ctx.moveTo(cx,cy-20);
+        ctx.lineTo(cx,cy+20);
+
+        ctx.stroke();
+
+
+        // ------------------------------------------
+        // Líneas horizontales / verticales
+        // ------------------------------------------
+
+        ctx.strokeStyle = "rgba(236,138,75,0.30)";
+
+        ctx.beginPath();
+
+        ctx.moveTo(cx,0);
+        ctx.lineTo(cx,canvas.height);
+
+        ctx.moveTo(0,cy);
+        ctx.lineTo(canvas.width,cy);
+
+        ctx.stroke();
+
+
+        // ------------------------------------------
+        // Keypoints
+        // ------------------------------------------
+
+        for(const punto of cara.keypoints){
+
+          const px = punto.x * canvas.width;
+          const py = punto.y * canvas.height;
+
+          ctx.fillStyle = "#c95b5b";
+
+          ctx.beginPath();
+
+          ctx.arc(
+            px,
+            py,
+            5,
+            0,
+            Math.PI*2
+          );
+
+          ctx.fill();
+
+
+          // coordenadas
+
+          ctx.fillStyle = "white";
+          ctx.font = "11px monospace";
+
+          ctx.fillText(
+            Math.round(px) + "," + Math.round(py),
+            px + 8,
+            py
+          );
+        }
+
+
+        // ------------------------------------------
+        // Confianza
+        // ------------------------------------------
+
+        const confianza =
+          cara.categories[0]?.score ?? 0;
+
+        ctx.fillStyle = "#ec8a4b";
+        ctx.font = "16px monospace";
+
+        ctx.fillText(
+          "FACE " +
+          Math.round(confianza*100) +
+          "%",
+          x,
+          Math.max(20,y-10)
+        );
+
+      }
+
+
+      requestAnimationFrame(detectar);
+    }
+
+
+    // ============================================
+    // 4. START
+    // ============================================
+
+    detectar();
+
+  </script>
+
+</body>
+</html>

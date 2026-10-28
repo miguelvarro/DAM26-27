@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>mavr | Ciudad (v2)</title>
+  <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+  <style>
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111;font-family:Arial,sans-serif}
+    #pip{position:fixed;right:18px;bottom:18px;width:240px;aspect-ratio:4/3;z-index:20;border-radius:14px;overflow:hidden;border:2px solid #fff8;box-shadow:0 8px 30px #0008;background:#111}
+    #pip video,#pip canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+    #pip canvas{z-index:2;pointer-events:none}
+    #estado{position:fixed;left:16px;top:16px;z-index:20;background:#0009;color:white;padding:9px 12px;border-radius:9px;font-size:13px}
+  </style>
+  <link rel="icon" href="../../img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../css/ejercicios.css">
+</head>
+<body class="mv-ej mv-ej-ra">
+  <a class="mv-ej-chip" href="../index.html" title="Volver a los ejercicios"><img src="../../img/logo.svg" alt="">← Ejercicios</a>
+  <div id="estado">Cargando webcam y MediaPipe…</div>
+  <div id="pip">
+    <video id="video" autoplay muted playsinline></video>
+    <canvas id="debug" width="640" height="480"></canvas>
+  </div>
+
+  <a-scene renderer="antialias:true; colorManagement:true" background="color:#dce8f2" fog="type: linear; color: #aeb8c2; near: 38; far: 78">
+    <a-entity light="type:ambient; intensity:1.1"></a-entity>
+    <a-entity light="type:directional; intensity:1.2" position="-2 4 2"></a-entity>
+
+    <a-entity id="mundoDenso"></a-entity>
+
+    <a-entity id="cameraRig" position="0 1.6 0">
+      <a-camera id="camera" position="0 0 0" rotation="0 0 0" look-controls="enabled:false" wasd-controls="enabled:false" fov="60" far="90"></a-camera>
+    </a-entity>
+  </a-scene>
+
+  <script type="module">
+    import {
+      FaceDetector,
+      HandLandmarker,
+      FilesetResolver
+    } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
+
+    // ============================================================
+    // AJUSTES DE HEAD TRACKING
+    // ============================================================
+    const PARALLAX_X = 1.25;
+    const PARALLAX_Y = 0.75;
+    const PARALLAX_Z = 1.00;
+    const SUAVIZADO   = 0.10;
+
+    // ============================================================
+    // AJUSTES DE CONTROL CON EL ÍNDICE
+    // ============================================================
+    const VELOCIDAD_AVANCE = 3.2;   // velocidad máxima, unidades/segundo
+    const VELOCIDAD_GIRO   = 72;    // velocidad máxima, grados/segundo
+
+    // Inercia / aceleración.
+    // Valores mayores = respuesta más rápida.
+    const ACELERACION_AVANCE = 3.2;
+    const FRENADO_AVANCE     = 4.2;
+    const ACELERACION_GIRO   = 4.5;
+    const FRENADO_GIRO       = 5.5;
+
+    // Para evitar cambios de gesto por pequeños temblores.
+    // Se compara la dirección 2D del índice: nudillo MCP(5) -> punta(8).
+    const UMBRAL_GESTO = 0.45;
+
+    const video = document.querySelector('#video');
+    const canvas = document.querySelector('#debug');
+    const ctx = canvas.getContext('2d');
+    const estado = document.querySelector('#estado');
+    const rig = document.querySelector('#cameraRig');
+
+    let faceDetector;
+    let handLandmarker;
+
+    // Head tracking: desplazamiento local respecto al jugador.
+    let headObjetivo = {x:0,y:0,z:0};
+    let headActual   = {x:0,y:0,z:0};
+    let caraReferencia = null;
+    let centroReferencia = null;
+
+    // Navegación tipo WASD.
+    let jugador = {x:0, y:1.6, z:0, yaw:0};
+    let controlMano = {avance:0, giro:0, activo:false};
+
+    // Valores reales con inercia. El dedo define el objetivo,
+    // pero la velocidad tarda un poco en alcanzarlo o volver a cero.
+    let avanceActual = 0;
+    let giroActual = 0;
+    let ultimoTiempo = performance.now();
+
+    // ============================================================
+    // MUNDO 3D MUCHO MÁS DENSO
+    // ============================================================
+    function randomDeterminista(n){
+      const x=Math.sin(n*12.9898+78.233)*43758.5453;
+      return x-Math.floor(x);
+    }
+
+    // ============================================================
+    // CIUDAD PROCEDURAL EXTENSA POR CHUNKS
+    // ============================================================
+    const CIUDAD = {
+      chunk: 24,
+      radioCarga: 2,       // 5x5 chunks alrededor del jugador
+      radioDescarga: 3,    // descarga al alejarse
+      separacionCalles: 12
+    };
+
+    const chunksCiudad = new Map();
+
+    function claveChunk(cx,cz){
+      return `${cx},${cz}`;
+    }
+
+    function hash2(x,z,s=0){
+      const n=Math.sin(x*127.1+z*311.7+s*74.7)*43758.5453123;
+      return n-Math.floor(n);
+    }
+
+    function crearCaja(parent,x,y,z,w,h,d,color){
+      const e=document.createElement('a-box');
+      e.setAttribute('position',`${x} ${y} ${z}`);
+      e.setAttribute('width',w);
+      e.setAttribute('height',h);
+      e.setAttribute('depth',d);
+      e.setAttribute('color',color);
+      e.setAttribute('roughness','0.86');
+      parent.appendChild(e);
+      return e;
+    }
+
+    function crearCilindro(parent,x,y,z,r,h,color){
+      const e=document.createElement('a-cylinder');
+      e.setAttribute('position',`${x} ${y} ${z}`);
+      e.setAttribute('radius',r);
+      e.setAttribute('height',h);
+      e.setAttribute('segments-radial','8');
+      e.setAttribute('color',color);
+      parent.appendChild(e);
+      return e;
+    }
+
+    function crearChunkCiudad(cx,cz){
+      const key=claveChunk(cx,cz);
+      if(chunksCiudad.has(key)) return;
+
+      const chunk=document.createElement('a-entity');
+      chunk.dataset.chunk=key;
+
+      const ox=cx*CIUDAD.chunk;
+      const oz=cz*CIUDAD.chunk;
+
+      // Un solo suelo por chunk, sin superficies coplanares.
+      crearCaja(
+        chunk,ox,-0.08,oz,
+        CIUDAD.chunk+.05,.16,CIUDAD.chunk+.05,
+        '#252b31'
+      );
+
+      // Calles cada 12 m. Se elevan claramente sobre el terreno.
+      for(let lx=-CIUDAD.chunk/2;lx<=CIUDAD.chunk/2;lx+=CIUDAD.separacionCalles){
+        crearCaja(chunk,ox+lx,0.015,oz,3.5,.03,CIUDAD.chunk,'#343a40');
+      }
+
+      for(let lz=-CIUDAD.chunk/2;lz<=CIUDAD.chunk/2;lz+=CIUDAD.separacionCalles){
+        crearCaja(chunk,ox,0.017,oz+lz,CIUDAD.chunk,.034,3.5,'#343a40');
+      }
+
+      // Edificios en una retícula de parcelas. Se omiten parcelas cercanas
+      // a calles para dejar una ciudad realmente navegable.
+      const paso=4;
+      let indice=0;
+
+      for(let lx=-10;lx<=10;lx+=paso){
+        for(let lz=-10;lz<=10;lz+=paso){
+          indice++;
+
+          const wx=ox+lx;
+          const wz=oz+lz;
+
+          const modX=Math.abs(((wx+6)%12+12)%12-6);
+          const modZ=Math.abs(((wz+6)%12+12)%12-6);
+
+          if(modX<2.6 || modZ<2.6) continue;
+
+          const r1=hash2(cx*31+indice,cz,1);
+          const r2=hash2(cx,cz*37+indice,2);
+          const r3=hash2(cx+indice,cz-indice,3);
+          const r4=hash2(cx-indice,cz+indice,4);
+
+          // Algunos solares vacíos forman pequeñas plazas/patios.
+          if(r1<0.10) continue;
+
+          const px=wx+(r1-.5)*.75;
+          const pz=wz+(r2-.5)*.75;
+          const h=2.4+r3*13.5;
+          const w=1.7+r4*1.7;
+          const d=1.7+hash2(cx+indice,cz,5)*1.7;
+          const hue=Math.floor(175+r2*165);
+          const color=`hsl(${hue},38%,${34+r1*24}%)`;
+
+          if(r4<.78){
+            crearCaja(chunk,px,h/2+.12,pz,w,h,d,color);
+
+            // Coronación geométrica.
+            if(r3>.68){
+              crearCaja(
+                chunk,px,h+.42,pz,
+                w*.56,.6,d*.56,
+                `hsl(${hue},32%,48%)`
+              );
+            }
+          }else{
+            crearCilindro(chunk,px,h/2+.12,pz,w*.48,h,color);
+          }
+
+          // Antena / hito ocasional.
+          if(r3>.91){
+            crearCilindro(chunk,px,h+1.0,pz,.045,2,'#aab4bc');
+          }
+        }
+      }
+
+      // Farolas junto a las calles.
+      for(let i=-9;i<=9;i+=6){
+        const r=hash2(cx+i,cz,20);
+        const fx=ox+i;
+        const fz=oz+(r>.5 ? 4.1 : -4.1);
+
+        crearCilindro(chunk,fx,.72,fz,.045,1.44,'#8c969e');
+
+        const luz=document.createElement('a-sphere');
+        luz.setAttribute('position',`${fx} 1.5 ${fz}`);
+        luz.setAttribute('radius','.105');
+        luz.setAttribute('segments-width','8');
+        luz.setAttribute('segments-height','6');
+        luz.setAttribute(
+          'material',
+          'color:#fff1a8; emissive:#ffe082; emissiveIntensity:.65'
+        );
+        chunk.appendChild(luz);
+      }
+
+      // Árboles ocasionales en patios.
+      for(let i=0;i<3;i++){
+        const tx=ox+(hash2(cx,cz,i+50)-.5)*18;
+        const tz=oz+(hash2(cx,cz,i+60)-.5)*18;
+
+        const modX=Math.abs(((tx+6)%12+12)%12-6);
+        const modZ=Math.abs(((tz+6)%12+12)%12-6);
+
+        if(modX>2.7 && modZ>2.7){
+          crearCilindro(chunk,tx,.5,tz,.09,1,'#76553d');
+
+          const copa=document.createElement('a-dodecahedron');
+          copa.setAttribute('position',`${tx} 1.35 ${tz}`);
+          copa.setAttribute('radius','.48');
+          copa.setAttribute(
+            'color',
+            `hsl(${105+Math.floor(hash2(cx,cz,i+70)*35)},42%,38%)`
+          );
+          chunk.appendChild(copa);
+        }
+      }
+
+      // Escultura/hito ocasional en cruces.
+      if(hash2(cx,cz,90)>.82){
+        const esc=document.createElement('a-octahedron');
+        esc.setAttribute('position',`${ox} 2.1 ${oz}`);
+        esc.setAttribute('radius','.72');
+        esc.setAttribute(
+          'color',
+          `hsl(${Math.floor(hash2(cx,cz,91)*360)},62%,58%)`
+        );
+        esc.setAttribute(
+          'animation',
+          `property:rotation; to:0 360 0; loop:true; dur:${11000+hash2(cx,cz,92)*8000}; easing:linear`
+        );
+        chunk.appendChild(esc);
+      }
+
+      document.querySelector('#mundoDenso').appendChild(chunk);
+      chunksCiudad.set(key,chunk);
+    }
+
+    function actualizarChunksCiudad(){
+      const cx=Math.floor(jugador.x/CIUDAD.chunk);
+      const cz=Math.floor(jugador.z/CIUDAD.chunk);
+
+      // Carga progresiva alrededor del usuario.
+      for(let dz=-CIUDAD.radioCarga;dz<=CIUDAD.radioCarga;dz++){
+        for(let dx=-CIUDAD.radioCarga;dx<=CIUDAD.radioCarga;dx++){
+          crearChunkCiudad(cx+dx,cz+dz);
+        }
+      }
+
+      // Z-limit / streaming: eliminamos geometría suficientemente lejana.
+      for(const [key,elemento] of chunksCiudad){
+        const [ex,ez]=key.split(',').map(Number);
+
+        if(
+          Math.abs(ex-cx)>CIUDAD.radioDescarga ||
+          Math.abs(ez-cz)>CIUDAD.radioDescarga
+        ){
+          elemento.remove();
+          chunksCiudad.delete(key);
+        }
+      }
+    }
+
+    // Precarga inicial.
+    for(let z=-CIUDAD.radioCarga;z<=CIUDAD.radioCarga;z++){
+      for(let x=-CIUDAD.radioCarga;x<=CIUDAD.radioCarga;x++){
+        crearChunkCiudad(x,z);
+      }
+    }
+
+    let ultimoChunkX=999999;
+    let ultimoChunkZ=999999;
+
+    function comprobarStreamingCiudad(){
+      const cx=Math.floor(jugador.x/CIUDAD.chunk);
+      const cz=Math.floor(jugador.z/CIUDAD.chunk);
+
+      if(cx!==ultimoChunkX || cz!==ultimoChunkZ){
+        ultimoChunkX=cx;
+        ultimoChunkZ=cz;
+        actualizarChunksCiudad();
+      }
+    }
+
+
+    // ============================================================
+    // WEBCAM ÚNICA COMPARTIDA POR CARA + MANOS
+    // ============================================================
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video:{width:{ideal:640},height:{ideal:480},facingMode:'user'},
+      audio:false
+    });
+
+    video.srcObject = stream;
+    await video.play();
+
+    const vision = await FilesetResolver.forVisionTasks(
+      'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm'
+    );
+
+    // ============================================================
+    // MEDIAPIPE FACE
+    // ============================================================
+    faceDetector = await FaceDetector.createFromOptions(vision,{
+      baseOptions:{
+        modelAssetPath:
+          'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/latest/blaze_face_short_range.tflite'
+      },
+      runningMode:'VIDEO',
+      minDetectionConfidence:0.5
+    });
+
+    // ============================================================
+    // MEDIAPIPE HANDS
+    // ============================================================
+    handLandmarker = await HandLandmarker.createFromOptions(vision,{
+      baseOptions:{
+        modelAssetPath:
+          'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task'
+      },
+      runningMode:'VIDEO',
+      numHands:2,
+      minHandDetectionConfidence:0.5,
+      minHandPresenceConfidence:0.5,
+      minTrackingConfidence:0.5
+    });
+
+    estado.textContent =
+      'Cabeza: paralaje · Índice: ↑ avanzar · ← girar izq. · → girar der.';
+
+    // ============================================================
+    // CARA
+    // ============================================================
+    function procesarCara(cara){
+      const b = cara.boundingBox;
+      const cx = b.originX + b.width/2;
+      const cy = b.originY + b.height/2;
+
+      const fx = cx / video.videoWidth;
+      const fy = cy / video.videoHeight;
+
+      if(centroReferencia === null){
+        centroReferencia = {x:fx,y:fy};
+      }
+
+      // Coordenadas de movimiento de la cabeza.
+      // El vídeo se muestra espejado mediante CSS, pero MediaPipe trabaja
+      // con el vídeo original. Aplicamos UNA sola inversión horizontal.
+      const nx = (fx-centroReferencia.x)*2;
+      const ny = (fy-centroReferencia.y)*2;
+
+      const area =
+        (b.width*b.height) /
+        (video.videoWidth*video.videoHeight);
+
+      if(caraReferencia === null){
+        caraReferencia = area;
+      }
+
+      const dz = Math.max(
+        -1,
+        Math.min(1,(area/caraReferencia)-1)
+      );
+
+      // Ventana 3D: una única inversión en X.
+      headObjetivo.x = -nx*PARALLAX_X;
+      headObjetivo.y = -ny*PARALLAX_Y;
+      headObjetivo.z = -dz*PARALLAX_Z;
+
+      // Bounding box de la cara
+      const sx = canvas.width/video.videoWidth;
+      const sy = canvas.height/video.videoHeight;
+
+      ctx.strokeStyle='#ec8a4b';
+      ctx.lineWidth=3;
+      ctx.strokeRect(
+        b.originX*sx,
+        b.originY*sy,
+        b.width*sx,
+        b.height*sy
+      );
+    }
+
+    // ============================================================
+    // DIRECCIÓN DEL DEDO ÍNDICE
+    //
+    // Landmark 5 = base del índice
+    // Landmark 8 = punta del índice
+    //
+    // Como el PiP está espejado visualmente, invertimos dx para que
+    // "apuntar a la izquierda" coincida con lo que ve el usuario.
+    // ============================================================
+    function distancia3D(a,b){
+      return Math.hypot(
+        a.x-b.x,
+        a.y-b.y,
+        (a.z ?? 0)-(b.z ?? 0)
+      );
+    }
+
+    function indiceEstaExtendido(puntos){
+      const mcp = puntos[5]; // nudillo
+      const pip = puntos[6];
+      const dip = puntos[7];
+      const tip = puntos[8]; // punta
+
+      // Vector PIP -> MCP
+      const ax = mcp.x-pip.x;
+      const ay = mcp.y-pip.y;
+      const az = (mcp.z ?? 0)-(pip.z ?? 0);
+
+      // Vector PIP -> TIP
+      const bx = tip.x-pip.x;
+      const by = tip.y-pip.y;
+      const bz = (tip.z ?? 0)-(pip.z ?? 0);
+
+      const ma = Math.hypot(ax,ay,az);
+      const mb = Math.hypot(bx,by,bz);
+
+      if(ma < 0.0001 || mb < 0.0001){
+        return false;
+      }
+
+      // Si el dedo está recto, MCP y TIP quedan en direcciones
+      // casi opuestas respecto a PIP: ángulo cercano a 180 grados.
+      const cosAngulo = Math.max(
+        -1,
+        Math.min(
+          1,
+          (ax*bx + ay*by + az*bz)/(ma*mb)
+        )
+      );
+
+      const anguloPIP =
+        Math.acos(cosAngulo)*180/Math.PI;
+
+      // Además la punta debe estar suficientemente separada del nudillo.
+      // Esto evita aceptar un índice plegado sobre sí mismo.
+      const largoIndice = distancia3D(mcp,tip);
+      const largoPalma = distancia3D(puntos[0],puntos[9]);
+
+      return (
+        anguloPIP > 155 &&
+        largoIndice > largoPalma*0.72
+      );
+    }
+
+    function obtenerControlIndice(puntos){
+
+      if(!indiceEstaExtendido(puntos)){
+        return {avance:0, giro:0, activo:false};
+      }
+
+      const base = puntos[5];
+      const punta = puntos[8];
+
+      // Espejo horizontal para coincidir con el PiP.
+      let dx = -(punta.x-base.x);
+      let dy =  (punta.y-base.y);
+
+      const longitud = Math.hypot(dx,dy);
+
+      if(longitud < 0.035){
+        return {avance:0, giro:0, activo:false};
+      }
+
+      dx /= longitud;
+      dy /= longitud;
+
+      // Solo usamos el hemisferio superior:
+      // arriba aporta avance y horizontal aporta giro.
+      //
+      // ↑          avance=1.00  giro=0.00
+      // ↖ / ↗      avance≈0.71  giro≈0.71
+      // ← / →      avance=0.00  giro=1.00
+      //
+      // De esta forma no existen "sectores" bruscos.
+      const avance = Math.max(0,-dy);
+      const giro = dx;
+
+      return {
+        avance,
+        giro,
+        activo:true
+      };
+    }
+
+    function dibujarMano(puntos){
+      const conexiones = [
+        [0,1],[1,2],[2,3],[3,4],
+        [0,5],[5,6],[6,7],[7,8],
+        [5,9],[9,10],[10,11],[11,12],
+        [9,13],[13,14],[14,15],[15,16],
+        [13,17],[17,18],[18,19],[19,20],
+        [0,17]
+      ];
+
+      ctx.strokeStyle='#5b8bb5';
+      ctx.lineWidth=2;
+
+      for(const [ia,ib] of conexiones){
+        const a=puntos[ia];
+        const b=puntos[ib];
+
+        ctx.beginPath();
+        ctx.moveTo(a.x*canvas.width,a.y*canvas.height);
+        ctx.lineTo(b.x*canvas.width,b.y*canvas.height);
+        ctx.stroke();
+      }
+
+      // Resaltamos el índice 5 -> 8.
+      const base=puntos[5];
+      const punta=puntos[8];
+
+      ctx.strokeStyle='#fcebdd';
+      ctx.lineWidth=6;
+      ctx.beginPath();
+      ctx.moveTo(base.x*canvas.width,base.y*canvas.height);
+      ctx.lineTo(punta.x*canvas.width,punta.y*canvas.height);
+      ctx.stroke();
+
+      ctx.fillStyle='#fcebdd';
+      ctx.beginPath();
+      ctx.arc(
+        punta.x*canvas.width,
+        punta.y*canvas.height,
+        7,
+        0,
+        Math.PI*2
+      );
+      ctx.fill();
+    }
+
+    // ============================================================
+    // MOVIMIENTO DEL JUGADOR
+    // ============================================================
+    function acercar(actual, objetivo, rapidez, dt){
+      // Interpolación exponencial independiente del framerate.
+      const k = 1-Math.exp(-rapidez*dt);
+      return actual+(objetivo-actual)*k;
+    }
+
+    function moverJugador(dt){
+
+      const objetivoAvance =
+        controlMano.activo ? controlMano.avance : 0;
+
+      const objetivoGiro =
+        controlMano.activo ? controlMano.giro : 0;
+
+      // Aceleramos y frenamos con constantes distintas.
+      avanceActual = acercar(
+        avanceActual,
+        objetivoAvance,
+        objetivoAvance > avanceActual
+          ? ACELERACION_AVANCE
+          : FRENADO_AVANCE,
+        dt
+      );
+
+      giroActual = acercar(
+        giroActual,
+        objetivoGiro,
+        Math.abs(objetivoGiro) > Math.abs(giroActual)
+          ? ACELERACION_GIRO
+          : FRENADO_GIRO,
+        dt
+      );
+
+      // Eliminamos residuos diminutos al frenar.
+      if(Math.abs(avanceActual)<0.002) avanceActual=0;
+      if(Math.abs(giroActual)<0.002) giroActual=0;
+
+      jugador.yaw -=
+        giroActual *
+        VELOCIDAD_GIRO *
+        dt;
+
+      if(avanceActual > 0){
+        const rad =
+          THREE.MathUtils.degToRad(jugador.yaw);
+
+        const forwardX = -Math.sin(rad);
+        const forwardZ = -Math.cos(rad);
+
+        jugador.x +=
+          forwardX *
+          VELOCIDAD_AVANCE *
+          avanceActual *
+          dt;
+
+        jugador.z +=
+          forwardZ *
+          VELOCIDAD_AVANCE *
+          avanceActual *
+          dt;
+      }
+    }
+
+    // ============================================================
+    // LOOP
+    // ============================================================
+    function loop(tiempo){
+      const dt = Math.min(
+        0.05,
+        (tiempo-ultimoTiempo)/1000
+      );
+      ultimoTiempo=tiempo;
+
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+
+      if(video.readyState >= 2){
+
+        // -------- CARA --------
+        const caras =
+          faceDetector.detectForVideo(video,tiempo);
+
+        if(caras.detections.length){
+          procesarCara(caras.detections[0]);
+        }
+
+        // -------- MANOS --------
+        const manos =
+          handLandmarker.detectForVideo(video,tiempo);
+
+        controlMano={avance:0,giro:0,activo:false};
+
+        if(manos.landmarks.length){
+          // Usamos la primera mano detectada como mando.
+          const puntos=manos.landmarks[0];
+
+          controlMano=obtenerControlIndice(puntos);
+          dibujarMano(puntos);
+        }
+      }
+
+      moverJugador(dt);
+
+      comprobarStreamingCiudad();
+
+      // Suavizado independiente del movimiento de la cabeza.
+      headActual.x +=
+        (headObjetivo.x-headActual.x)*SUAVIZADO;
+
+      headActual.y +=
+        (headObjetivo.y-headActual.y)*SUAVIZADO;
+
+      headActual.z +=
+        (headObjetivo.z-headActual.z)*SUAVIZADO;
+
+      // Transformamos el pequeño desplazamiento de cabeza desde
+      // coordenadas locales del jugador a coordenadas del mundo.
+      const yawRad =
+        THREE.MathUtils.degToRad(jugador.yaw);
+
+      const hx =
+        headActual.x*Math.cos(yawRad) -
+        headActual.z*Math.sin(yawRad);
+
+      const hz =
+        headActual.x*Math.sin(yawRad) +
+        headActual.z*Math.cos(yawRad);
+
+      rig.setAttribute(
+        'position',
+        `${jugador.x+hx} ${jugador.y+headActual.y} ${jugador.z+hz}`
+      );
+
+      rig.setAttribute(
+        'rotation',
+        `0 ${jugador.yaw} 0`
+      );
+
+      let texto='✋ neutro';
+
+      if(controlMano.activo){
+        const avancePct=Math.round(controlMano.avance*100);
+        const giroPct=Math.round(Math.abs(controlMano.giro)*100);
+
+        let direccion='recto';
+
+        if(controlMano.giro < -0.08){
+          direccion='izquierda';
+        }else if(controlMano.giro > 0.08){
+          direccion='derecha';
+        }
+
+        texto =
+          `☝ avance ${avancePct}% · giro ${direccion} ${giroPct}%`;
+      }
+
+      estado.textContent =
+        `Cabeza: paralaje · Mano: ${texto} · velocidad ${Math.round(avanceActual*100)}%`;
+
+      requestAnimationFrame(loop);
+    }
+
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <title>mavr | Coordenadas del ratón</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="icon" href="../../img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../css/ejercicios.css">
+</head>
+  <body class="mv-ej">
+    <header class="mv-ej-cabecera"><img src="../../img/logo.svg" alt=""><span class="marca">mavr | interfaz integrada</span><h1>Coordenadas del ratón</h1><a class="mv-ej-volver" href="../index.html">← Ejercicios</a></header>
+    <main class="mv-ej-raton mv-ej-ejes"><output id="coordenadas">x: 0 · y: 0<small>Mueve el ratón: el origen (0, 0) está en el centro</small></output></main>
+    <script>
+      console.log("hola");
+			let anchura = window.innerWidth
+      let altura = window.innerHeight;
+      let centrox = anchura/2
+      let centroy = altura/2
+      let cuerpo = document.querySelector("html");
+
+      cuerpo.onmousemove = function(e){
+        let x = 0-centrox+e.clientX
+        let y = 0+centroy-e.clientY
+        console.log(x, y);
+        document.querySelector("#coordenadas").firstChild.textContent = `x: ${x} · y: ${y}`;
+      };
+    </script>
+  </body>
+</html>

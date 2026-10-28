@@ -1,0 +1,887 @@
+<!doctype html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8">
+  <title>mavr | Sprite con suavizado</title>
+
+  <style>
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      background:#222;
+      color:white;
+      font-family:monospace;
+    }
+
+    h1{
+      text-align:center;
+    }
+
+    #pantalla{
+      display:flex;
+      width:1280px;
+      max-width:100%;
+      height:480px;
+      margin:auto;
+      border:1px solid #555;
+    }
+
+    .mitad{
+      position:relative;
+      width:50%;
+      height:480px;
+      overflow:hidden;
+    }
+
+    #webcam{
+      background:black;
+    }
+
+    #avatar{
+      background:#eee;
+    }
+
+    video,
+    canvas{
+      position:absolute;
+      left:0;
+      top:0;
+      width:100%;
+      height:480px;
+    }
+
+    video{
+      opacity:0;
+    }
+
+    canvas{
+      z-index:2;
+    }
+
+    .titulo{
+      position:absolute;
+      z-index:10;
+      left:10px;
+      top:10px;
+      background:#000a;
+      padding:8px 12px;
+      border-radius:5px;
+      pointer-events:none;
+    }
+  </style>
+  <link rel="icon" href="../../img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../css/ejercicios.css">
+</head>
+
+<body class="mv-ej mv-ej-dividido">
+
+<header class="mv-ej-cabecera"><img src="../../img/logo.svg" alt=""><span class="marca">mavr | interfaz integrada</span><h1>Sprite con suavizado</h1><a class="mv-ej-volver" href="../index.html">← Ejercicios</a></header>
+
+<div id="pantalla">
+
+  <div class="mitad" id="webcam">
+    <div class="titulo">Webcam</div>
+
+    <video
+      id="video"
+      width="640"
+      height="480"
+      autoplay
+      muted
+      playsinline>
+    </video>
+
+    <canvas
+      id="canvasWebcam"
+      width="640"
+      height="480">
+    </canvas>
+  </div>
+
+  <div class="mitad" id="avatar">
+    <div class="titulo">Sprite interpolado</div>
+
+    <canvas
+      id="canvasSprite"
+      width="640"
+      height="480">
+    </canvas>
+  </div>
+
+</div>
+
+
+<script type="module">
+
+import {
+  FaceDetector,
+  FilesetResolver
+} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
+
+
+// ======================================================
+// ELEMENTOS
+// ======================================================
+
+const video = document.querySelector("#video");
+
+const canvasWebcam =
+  document.querySelector("#canvasWebcam");
+
+const ctx =
+  canvasWebcam.getContext("2d");
+
+const canvasSprite =
+  document.querySelector("#canvasSprite");
+
+const ctxSprite =
+  canvasSprite.getContext("2d");
+
+
+// ======================================================
+// SPRITESHEET
+// Debe ser una imagen 5x5 llamada spritesheet.png
+// ======================================================
+
+const spritesheet = new Image();
+
+spritesheet.src = "spritesheet.png";
+
+await new Promise((resolve,reject) => {
+
+  spritesheet.onload = resolve;
+
+  spritesheet.onerror = () => {
+    reject(
+      new Error(
+        "No se ha podido cargar spritesheet.png"
+      )
+    );
+  };
+
+});
+
+console.log(
+  "Spritesheet:",
+  spritesheet.width,
+  spritesheet.height
+);
+
+
+// ======================================================
+// CONFIGURACIÓN DEL SPRITESHEET
+// ======================================================
+
+const COLUMNAS = 5;
+const FILAS = 5;
+
+const spriteW =
+  spritesheet.width / COLUMNAS;
+
+const spriteH =
+  spritesheet.height / FILAS;
+
+
+// ======================================================
+// WEBCAM
+// ======================================================
+
+const stream =
+  await navigator.mediaDevices.getUserMedia({
+
+    video:{
+      width:640,
+      height:480
+    }
+
+  });
+
+video.srcObject = stream;
+
+await video.play();
+
+console.log("Webcam funcionando");
+
+
+// ======================================================
+// MEDIAPIPE
+// ======================================================
+
+const vision =
+  await FilesetResolver.forVisionTasks(
+
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+
+  );
+
+
+const detector =
+  await FaceDetector.createFromOptions(
+
+    vision,
+
+    {
+
+      baseOptions:{
+
+        modelAssetPath:
+        "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/latest/blaze_face_short_range.tflite"
+
+      },
+
+      runningMode:"VIDEO",
+
+      minDetectionConfidence:0.5
+
+    }
+
+  );
+
+console.log("MediaPipe cargado");
+
+
+// ======================================================
+// SUAVIZADO DE LA POSICIÓN
+// Reduce el temblor del detector.
+// 0.05 = muy suave/lento
+// 0.15 = suave
+// 0.30 = más rápido
+// 1.00 = sin suavizado
+// ======================================================
+
+const SUAVIZADO = 0.15;
+
+let cxSuave = null;
+let cySuave = null;
+
+
+// ======================================================
+// DIBUJAR UNA CAPA DEL SPRITE
+// ======================================================
+
+function dibujarCapa(fila, columna, alpha){
+
+  if(alpha <= 0){
+    return;
+  }
+
+  const sx =
+    columna * spriteW;
+
+  const sy =
+    fila * spriteH;
+
+
+  const escala = Math.min(
+
+    canvasSprite.width / spriteW,
+    canvasSprite.height / spriteH
+
+  );
+
+
+  const ancho =
+    spriteW * escala;
+
+  const alto =
+    spriteH * escala;
+
+
+  const dx =
+    (canvasSprite.width - ancho) / 2;
+
+  const dy =
+    (canvasSprite.height - alto) / 2;
+
+
+  ctxSprite.globalAlpha = alpha;
+
+  ctxSprite.drawImage(
+
+    spritesheet,
+
+    sx,
+    sy,
+    spriteW,
+    spriteH,
+
+    dx,
+    dy,
+    ancho,
+    alto
+
+  );
+}
+
+
+// ======================================================
+// INTERPOLACIÓN BILINEAL ENTRE 4 SPRITES
+// ======================================================
+
+function dibujarSpriteInterpolado(fila, columna){
+
+  ctxSprite.clearRect(
+    0,
+    0,
+    canvasSprite.width,
+    canvasSprite.height
+  );
+
+
+  // limitar al rango del spritesheet
+
+  fila =
+    Math.max(
+      0,
+      Math.min(4,fila)
+    );
+
+  columna =
+    Math.max(
+      0,
+      Math.min(4,columna)
+    );
+
+
+  // sprites vecinos
+
+  const col0 =
+    Math.floor(columna);
+
+  const col1 =
+    Math.min(4,col0 + 1);
+
+  const fila0 =
+    Math.floor(fila);
+
+  const fila1 =
+    Math.min(4,fila0 + 1);
+
+
+  // parte decimal
+
+  const fx =
+    columna - col0;
+
+  const fy =
+    fila - fila0;
+
+
+  // pesos bilineales
+
+  const peso00 =
+    (1-fx) * (1-fy);
+
+  const peso10 =
+    fx * (1-fy);
+
+  const peso01 =
+    (1-fx) * fy;
+
+  const peso11 =
+    fx * fy;
+
+
+  // dibujar las cuatro capas
+
+  dibujarCapa(
+    fila0,
+    col0,
+    peso00
+  );
+
+  dibujarCapa(
+    fila0,
+    col1,
+    peso10
+  );
+
+  dibujarCapa(
+    fila1,
+    col0,
+    peso01
+  );
+
+  dibujarCapa(
+    fila1,
+    col1,
+    peso11
+  );
+
+
+  ctxSprite.globalAlpha = 1;
+
+
+  // ----------------------------------------------
+  // DEBUG
+  // ----------------------------------------------
+
+  ctxSprite.fillStyle =
+    "rgba(36,38,43,0.78)";
+
+  ctxSprite.fillRect(
+    10,
+    375,
+    300,
+    95
+  );
+
+  ctxSprite.fillStyle =
+    "white";
+
+  ctxSprite.font =
+    "14px monospace";
+
+  ctxSprite.fillText(
+    "Pos sprite: " +
+    columna.toFixed(2) +
+    ", " +
+    fila.toFixed(2),
+    20,
+    400
+  );
+
+  ctxSprite.fillText(
+    "["+fila0+","+col0+"] " +
+    Math.round(peso00*100)+"%",
+    20,
+    423
+  );
+
+  ctxSprite.fillText(
+    "["+fila0+","+col1+"] " +
+    Math.round(peso10*100)+"%",
+    160,
+    423
+  );
+
+  ctxSprite.fillText(
+    "["+fila1+","+col0+"] " +
+    Math.round(peso01*100)+"%",
+    20,
+    446
+  );
+
+  ctxSprite.fillText(
+    "["+fila1+","+col1+"] " +
+    Math.round(peso11*100)+"%",
+    160,
+    446
+  );
+}
+
+
+// ======================================================
+// SPRITE INICIAL
+// ======================================================
+
+dibujarSpriteInterpolado(
+  2,
+  2
+);
+
+
+// ======================================================
+// LOOP
+// ======================================================
+
+function detectar(){
+
+
+  // ====================================================
+  // WEBCAM
+  // ====================================================
+
+  ctx.drawImage(
+
+    video,
+
+    0,
+    0,
+    canvasWebcam.width,
+    canvasWebcam.height
+
+  );
+
+
+  // ====================================================
+  // DETECTAR CARA
+  // ====================================================
+
+  const resultado =
+    detector.detectForVideo(
+
+      video,
+      performance.now()
+
+    );
+
+
+  // ====================================================
+  // GRID 5x5
+  // ====================================================
+
+  const sectorW =
+    canvasWebcam.width / 5;
+
+  const sectorH =
+    canvasWebcam.height / 5;
+
+
+  ctx.strokeStyle =
+    "rgba(255,255,255,0.35)";
+
+  ctx.lineWidth = 1;
+
+
+  for(let i=1;i<5;i++){
+
+    const x =
+      i * sectorW;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      x,
+      0
+    );
+
+    ctx.lineTo(
+      x,
+      canvasWebcam.height
+    );
+
+    ctx.stroke();
+
+  }
+
+
+  for(let i=1;i<5;i++){
+
+    const y =
+      i * sectorH;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      0,
+      y
+    );
+
+    ctx.lineTo(
+      canvasWebcam.width,
+      y
+    );
+
+    ctx.stroke();
+
+  }
+
+
+  // ====================================================
+  // SI HAY CARA
+  // ====================================================
+
+  if(resultado.detections.length > 0){
+
+    const cara =
+      resultado.detections[0];
+
+    const caja =
+      cara.boundingBox;
+
+
+    const x =
+      caja.originX;
+
+    const y =
+      caja.originY;
+
+    const w =
+      caja.width;
+
+    const h =
+      caja.height;
+
+
+    // centro real detectado
+
+    const cx =
+      x + w/2;
+
+    const cy =
+      y + h/2;
+
+
+    // ==================================================
+    // SUAVIZAR CENTRO
+    // ==================================================
+
+    if(cxSuave === null){
+
+      cxSuave = cx;
+      cySuave = cy;
+
+    }else{
+
+      cxSuave +=
+        (cx - cxSuave) *
+        SUAVIZADO;
+
+      cySuave +=
+        (cy - cySuave) *
+        SUAVIZADO;
+
+    }
+
+
+    // ==================================================
+    // POSICIÓN DECIMAL DENTRO DEL 5x5
+    //
+    // El centro de cada sector coincide exactamente
+    // con un sprite entero:
+    //
+    // centro pantalla => 2,2
+    // ==================================================
+
+    let columna =
+      cxSuave /
+      canvasWebcam.width *
+      5 -
+      0.5;
+
+    let fila =
+      cySuave /
+      canvasWebcam.height *
+      5 -
+      0.5;
+
+
+    columna =
+      Math.max(
+        0,
+        Math.min(4,columna)
+      );
+
+    fila =
+      Math.max(
+        0,
+        Math.min(4,fila)
+      );
+
+
+    // ==================================================
+    // SECTOR PRINCIPAL PARA DEBUG
+    // ==================================================
+
+    const columnaSector =
+      Math.max(
+        0,
+        Math.min(
+          4,
+          Math.floor(
+            cxSuave / sectorW
+          )
+        )
+      );
+
+    const filaSector =
+      Math.max(
+        0,
+        Math.min(
+          4,
+          Math.floor(
+            cySuave / sectorH
+          )
+        )
+      );
+
+
+    // ==================================================
+    // DESTACAR SECTOR
+    // ==================================================
+
+    ctx.fillStyle =
+      "rgba(236,138,75,0.12)";
+
+    ctx.fillRect(
+
+      columnaSector * sectorW,
+      filaSector * sectorH,
+
+      sectorW,
+      sectorH
+
+    );
+
+
+    // ==================================================
+    // BOUNDING BOX
+    // ==================================================
+
+    ctx.strokeStyle =
+      "#ec8a4b";
+
+    ctx.lineWidth = 3;
+
+    ctx.strokeRect(
+      x,
+      y,
+      w,
+      h
+    );
+
+
+    // ==================================================
+    // CENTRO REAL
+    // ==================================================
+
+    ctx.fillStyle =
+      "#c95b5b";
+
+    ctx.beginPath();
+
+    ctx.arc(
+      cx,
+      cy,
+      5,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    // ==================================================
+    // CENTRO SUAVIZADO
+    // ==================================================
+
+    ctx.fillStyle =
+      "#fcebdd";
+
+    ctx.beginPath();
+
+    ctx.arc(
+      cxSuave,
+      cySuave,
+      7,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    // cruz
+
+    ctx.strokeStyle =
+      "#fcebdd";
+
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      cxSuave-20,
+      cySuave
+    );
+
+    ctx.lineTo(
+      cxSuave+20,
+      cySuave
+    );
+
+    ctx.moveTo(
+      cxSuave,
+      cySuave-20
+    );
+
+    ctx.lineTo(
+      cxSuave,
+      cySuave+20
+    );
+
+    ctx.stroke();
+
+
+    // ==================================================
+    // DEBUG WEBCAM
+    // ==================================================
+
+    ctx.fillStyle =
+      "rgba(36,38,43,0.78)";
+
+    ctx.fillRect(
+      10,
+      390,
+      300,
+      80
+    );
+
+
+    ctx.fillStyle =
+      "white";
+
+    ctx.font =
+      "14px monospace";
+
+
+    ctx.fillText(
+      "Centro: " +
+      Math.round(cxSuave) +
+      ", " +
+      Math.round(cySuave),
+      20,
+      415
+    );
+
+
+    ctx.fillText(
+      "Sprite X: " +
+      columna.toFixed(2),
+      20,
+      438
+    );
+
+
+    ctx.fillText(
+      "Sprite Y: " +
+      fila.toFixed(2),
+      20,
+      461
+    );
+
+
+    // ==================================================
+    // SPRITE CON FADE
+    // ==================================================
+
+    dibujarSpriteInterpolado(
+      fila,
+      columna
+    );
+
+  }
+
+
+  requestAnimationFrame(
+    detectar
+  );
+
+}
+
+
+// ======================================================
+// START
+// ======================================================
+
+detectar();
+
+</script>
+
+</body>
+</html>

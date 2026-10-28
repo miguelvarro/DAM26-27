@@ -1,0 +1,346 @@
+<!doctype html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8">
+  <title>mavr | Malla de la cara</title>
+
+  <style>
+    body{
+      background:#222;
+      color:white;
+      font-family:monospace;
+    }
+
+    #contenedor{
+      position:relative;
+      width:640px;
+      height:480px;
+    }
+
+    video,
+    canvas{
+      position:absolute;
+      left:0;
+      top:0;
+      width:640px;
+      height:480px;
+    }
+
+    video{
+      opacity:0;
+    }
+
+    canvas{
+      z-index:2;
+    }
+  </style>
+  <link rel="icon" href="../../img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../css/ejercicios.css">
+</head>
+
+<body class="mv-ej mv-ej-camara">
+
+  <header class="mv-ej-cabecera"><img src="../../img/logo.svg" alt=""><span class="marca">mavr | interfaz integrada</span><h1>Malla de la cara</h1><a class="mv-ej-volver" href="../index.html">← Ejercicios</a></header>
+
+  <div id="contenedor">
+
+    <video
+      id="video"
+      width="640"
+      height="480"
+      autoplay
+      muted
+      playsinline>
+    </video>
+
+    <canvas
+      id="canvas"
+      width="640"
+      height="480">
+    </canvas>
+
+  </div>
+
+
+  <script type="module">
+
+    import {
+      FaceLandmarker,
+      FilesetResolver,
+      DrawingUtils
+    } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
+
+
+    const video = document.querySelector("#video");
+    const canvas = document.querySelector("#canvas");
+    const ctx = canvas.getContext("2d");
+
+
+    // ============================================
+    // 1. WEBCAM
+    // ============================================
+
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video:{
+        width:640,
+        height:480
+      }
+    });
+
+    video.srcObject = stream;
+
+    await video.play();
+
+    console.log("Webcam funcionando");
+
+    console.log(
+      "Resolución:",
+      video.videoWidth,
+      video.videoHeight
+    );
+
+
+    // ============================================
+    // 2. MEDIAPIPE
+    // ============================================
+
+    const vision = await FilesetResolver.forVisionTasks(
+      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+    );
+
+
+    const detector = await FaceLandmarker.createFromOptions(
+      vision,
+      {
+        baseOptions:{
+          modelAssetPath:
+          "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task"
+        },
+
+        runningMode:"VIDEO",
+
+        numFaces:1,
+
+        minFaceDetectionConfidence:0.5,
+        minFacePresenceConfidence:0.5,
+        minTrackingConfidence:0.5
+      }
+    );
+
+
+    console.log("MediaPipe Face Landmarker cargado");
+
+
+    // ============================================
+    // 3. DRAWING UTILS
+    // ============================================
+
+    const dibujo = new DrawingUtils(ctx);
+
+
+    // ============================================
+    // 4. LOOP
+    // ============================================
+
+    function detectar(){
+
+      // ------------------------------------------
+      // Webcam
+      // ------------------------------------------
+
+      ctx.drawImage(
+        video,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+
+
+      // ------------------------------------------
+      // Detectar
+      // ------------------------------------------
+
+      const resultado = detector.detectForVideo(
+        video,
+        performance.now()
+      );
+
+
+      // ==========================================
+      // DEBUG
+      // ==========================================
+
+      ctx.fillStyle = "rgba(36,38,43,0.78)";
+      ctx.fillRect(10,10,180,55);
+
+      ctx.fillStyle = "white";
+      ctx.font = "14px monospace";
+
+      ctx.fillText(
+        "Faces: " + resultado.faceLandmarks.length,
+        20,
+        32
+      );
+
+      ctx.fillText(
+        "Video: " + video.readyState,
+        20,
+        52
+      );
+
+
+      // ==========================================
+      // CADA CARA
+      // ==========================================
+
+      for(const puntos of resultado.faceLandmarks){
+
+
+        // ========================================
+        // MALLA COMPLETA
+        // ========================================
+
+        dibujo.drawConnectors(
+          puntos,
+          FaceLandmarker.FACE_LANDMARKS_TESSELATION,
+          {
+            color:"rgba(0,255,0,0.35)",
+            lineWidth:1
+          }
+        );
+
+
+        // ========================================
+        // CONTORNO
+        // ========================================
+
+        dibujo.drawConnectors(
+          puntos,
+          FaceLandmarker.FACE_LANDMARKS_FACE_OVAL,
+          {
+            color:"lime",
+            lineWidth:2
+          }
+        );
+
+
+        // ========================================
+        // OJO IZQUIERDO
+        // ========================================
+
+        dibujo.drawConnectors(
+          puntos,
+          FaceLandmarker.FACE_LANDMARKS_LEFT_EYE,
+          {
+            color:"yellow",
+            lineWidth:2
+          }
+        );
+
+
+        // ========================================
+        // OJO DERECHO
+        // ========================================
+
+        dibujo.drawConnectors(
+          puntos,
+          FaceLandmarker.FACE_LANDMARKS_RIGHT_EYE,
+          {
+            color:"yellow",
+            lineWidth:2
+          }
+        );
+
+
+        // ========================================
+        // CEJA IZQUIERDA
+        // ========================================
+
+        dibujo.drawConnectors(
+          puntos,
+          FaceLandmarker.FACE_LANDMARKS_LEFT_EYEBROW,
+          {
+            color:"cyan",
+            lineWidth:2
+          }
+        );
+
+
+        // ========================================
+        // CEJA DERECHA
+        // ========================================
+
+        dibujo.drawConnectors(
+          puntos,
+          FaceLandmarker.FACE_LANDMARKS_RIGHT_EYEBROW,
+          {
+            color:"cyan",
+            lineWidth:2
+          }
+        );
+
+
+        // ========================================
+        // LABIOS
+        // ========================================
+
+        dibujo.drawConnectors(
+          puntos,
+          FaceLandmarker.FACE_LANDMARKS_LIPS,
+          {
+            color:"red",
+            lineWidth:2
+          }
+        );
+
+
+        // ========================================
+        // LANDMARKS
+        // ========================================
+
+        for(
+          let i = 0;
+          i < puntos.length;
+          i++
+        ){
+
+          const punto = puntos[i];
+
+          const x = punto.x * canvas.width;
+          const y = punto.y * canvas.height;
+
+          ctx.fillStyle = "white";
+
+          ctx.beginPath();
+
+          ctx.arc(
+            x,
+            y,
+            1.5,
+            0,
+            Math.PI*2
+          );
+
+          ctx.fill();
+
+        }
+
+      }
+
+
+      requestAnimationFrame(detectar);
+    }
+
+
+    // ============================================
+    // 5. START
+    // ============================================
+
+    detectar();
+
+  </script>
+
+</body>
+</html>

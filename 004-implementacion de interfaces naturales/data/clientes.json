@@ -1,0 +1,49 @@
+{
+  "titulo": "Listado de clientes",
+
+  "columnas": [
+    {
+      "campo": "id",
+      "etiqueta": "ID"
+    },
+    {
+      "campo": "nombre",
+      "etiqueta": "Nombre"
+    },
+    {
+      "campo": "apellidos",
+      "etiqueta": "Apellidos"
+    },
+    {
+      "campo": "email",
+      "etiqueta": "Email"
+    },
+    {
+      "campo": "telefono",
+      "etiqueta": "Teléfono"
+    },
+    {
+      "campo": "empresa",
+      "etiqueta": "Empresa"
+    }
+  ],
+
+  "registros": [
+    {
+      "id": 1,
+      "nombre": "Laura",
+      "apellidos": "Martínez García",
+      "email": "laura.martinez@example.com",
+      "telefono": "+34 612 345 678",
+      "empresa": "Soluciones Levante S.L."
+    },
+    {
+      "id": 2,
+      "nombre": "Carlos",
+      "apellidos": "Navarro Pérez",
+      "email": "carlos.navarro@example.com",
+      "telefono": "+34 623 456 789",
+      "empresa": "Innovación Digital S.A."
+    }
+  ]
+}

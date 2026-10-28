@@ -1,0 +1,871 @@
+<!doctype html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8">
+  <title>mavr | Avatar mínimo corregido</title>
+
+  <style>
+    *{box-sizing:border-box}
+    html,body{width:100%;height:100%;margin:0;overflow:hidden}
+    body{background:#eee;font-family:Arial,sans-serif}
+
+    /* El avatar es la interfaz principal */
+    #pantalla{position:fixed;inset:0;background:#eee}
+    #avatar{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+    #canvasSprite{width:100%;height:100%;object-fit:contain;display:block}
+
+    /* Webcam PiP */
+    #webcam{
+      position:fixed;right:22px;top:22px;
+      width:220px;height:165px;
+      border-radius:16px;overflow:hidden;
+      background:#111;
+      box-shadow:0 8px 30px #0005;
+      z-index:20;
+      transition:.25s ease;
+    }
+    #webcam.minimizada{width:48px;height:48px;border-radius:24px}
+    #video{
+      position:absolute;inset:0;width:100%;height:100%;
+      object-fit:cover;transform:scaleX(-1);
+    }
+    #canvasWebcam{display:none}
+
+    #minimizarWebcam{
+      position:absolute;right:8px;top:8px;z-index:22;
+      width:32px;height:32px;border:0;border-radius:50%;
+      background:#0009;color:white;font-size:20px;line-height:30px;
+      cursor:pointer;backdrop-filter:blur(5px);
+    }
+    #webcam.minimizada #video{opacity:0}
+    #webcam.minimizada #minimizarWebcam{right:8px;top:8px}
+
+    /* Dictado flotante */
+    #microfono{
+      position:fixed;right:30px;bottom:30px;z-index:30;
+      width:68px;height:68px;border:0;border-radius:50%;
+      background:dodgerblue;color:white;font-size:30px;
+      cursor:pointer;box-shadow:0 6px 24px #0004;
+      transition:.2s ease;
+    }
+    #microfono:hover{transform:scale(1.08)}
+    #microfono.escuchando{transform:scale(1.12);box-shadow:0 0 0 10px #1e90ff33,0 6px 24px #0004}
+    #microfono.pensando{opacity:.65;cursor:wait}
+  </style>
+  <link rel="icon" href="../../img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../css/ejercicios.css">
+</head>
+
+<body class="mv-ej mv-ej-avatar">
+  <a class="mv-ej-chip" href="../index.html" title="Volver a los ejercicios"><img src="../../img/logo.svg" alt="">← Ejercicios</a>
+<div id="pantalla">
+  <div id="avatar">
+    <canvas id="canvasSprite" width="640" height="480"></canvas>
+  </div>
+
+  <div id="webcam">
+    <video id="video" width="640" height="480" autoplay muted playsinline></video>
+    <canvas id="canvasWebcam" width="640" height="480"></canvas>
+    <button id="minimizarWebcam" title="Minimizar webcam">−</button>
+  </div>
+</div>
+
+<button id="microfono" title="Hablar con el avatar">🎤</button>
+
+<script type="module">
+
+import {
+  FaceDetector,
+  FilesetResolver
+} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
+
+
+// ======================================================
+// ELEMENTOS
+// ======================================================
+
+const video = document.querySelector("#video");
+
+const canvasWebcam =
+  document.querySelector("#canvasWebcam");
+
+const ctx =
+  canvasWebcam.getContext("2d");
+
+const canvasSprite =
+  document.querySelector("#canvasSprite");
+
+const ctxSprite =
+  canvasSprite.getContext("2d");
+
+
+// ======================================================
+// SPRITESHEETS: BOCA CERRADA + BOCA ABIERTA (A)
+// Ambos deben ser 5x5 y tener exactamente la misma disposición.
+// ======================================================
+
+const spritesheet = new Image();
+const spritesheetA = new Image();
+
+spritesheet.src = "spritesheet.png";
+spritesheetA.src = "spritesheetA.png";
+
+await Promise.all([spritesheet, spritesheetA].map((img) =>
+  new Promise((resolve,reject) => {
+    img.onload = resolve;
+    img.onerror = () => reject(new Error("No se ha podido cargar " + img.src));
+  })
+));
+
+const COLUMNAS = 5;
+const FILAS = 5;
+const spriteW = spritesheet.width / COLUMNAS;
+const spriteH = spritesheet.height / FILAS;
+
+// Píxeles que se recortan POR CADA LADO de cada sprite.
+// Súbelo si todavía aparecen líneas negras entre las celdas.
+// Ejemplos: 0 = sin recorte, 2 = ligero, 4 = más agresivo.
+const RECORTE_SPRITE = 3;
+
+// Lip-sync simulado. Durante SpeechSynthesis alternamos las dos bocas.
+let hablando = false;
+let bocaAbierta = false;
+let temporizadorBoca = null;
+
+function iniciarLipSync(){
+  detenerLipSync();
+  hablando = true;
+  bocaAbierta = true;
+
+  const alternar = () => {
+    if(!hablando) return;
+    bocaAbierta = !bocaAbierta;
+    // Ritmo ligeramente variable para que no parezca un metrónomo.
+    temporizadorBoca = setTimeout(alternar, 90 + Math.random()*90);
+  };
+
+  temporizadorBoca = setTimeout(alternar, 110);
+}
+
+function detenerLipSync(){
+  hablando = false;
+  bocaAbierta = false;
+  if(temporizadorBoca){
+    clearTimeout(temporizadorBoca);
+    temporizadorBoca = null;
+  }
+}
+
+// ======================================================
+// WEBCAM
+// ======================================================
+
+const stream =
+  await navigator.mediaDevices.getUserMedia({
+
+    video:{
+      width:640,
+      height:480
+    }
+
+  });
+
+video.srcObject = stream;
+
+await video.play();
+
+console.log("Webcam funcionando");
+
+
+// ======================================================
+// MEDIAPIPE
+// ======================================================
+
+const vision =
+  await FilesetResolver.forVisionTasks(
+
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+
+  );
+
+
+const detector =
+  await FaceDetector.createFromOptions(
+
+    vision,
+
+    {
+
+      baseOptions:{
+
+        modelAssetPath:
+        "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/latest/blaze_face_short_range.tflite"
+
+      },
+
+      runningMode:"VIDEO",
+
+      minDetectionConfidence:0.5
+
+    }
+
+  );
+
+console.log("MediaPipe cargado");
+
+
+// ======================================================
+// SUAVIZADO DE LA POSICIÓN
+// Reduce el temblor del detector.
+// 0.05 = muy suave/lento
+// 0.15 = suave
+// 0.30 = más rápido
+// 1.00 = sin suavizado
+// ======================================================
+
+const SUAVIZADO = 0.15;
+
+let cxSuave = null;
+let cySuave = null;
+
+
+// ======================================================
+// DIBUJAR UNA CAPA DEL SPRITE
+// ======================================================
+
+function dibujarCapa(fila, columna, alpha){
+
+  if(alpha <= 0){
+    return;
+  }
+
+  const sx =
+    columna * spriteW + RECORTE_SPRITE;
+
+  const sy =
+    fila * spriteH + RECORTE_SPRITE;
+
+  const sw =
+    spriteW - RECORTE_SPRITE * 2;
+
+  const sh =
+    spriteH - RECORTE_SPRITE * 2;
+
+
+  const escala = Math.min(
+
+    canvasSprite.width / spriteW,
+    canvasSprite.height / spriteH
+
+  );
+
+
+  const ancho =
+    spriteW * escala;
+
+  const alto =
+    spriteH * escala;
+
+
+  const dx =
+    (canvasSprite.width - ancho) / 2;
+
+  const dy =
+    (canvasSprite.height - alto) / 2;
+
+
+  ctxSprite.globalAlpha = alpha;
+
+  const hojaActiva = (hablando && bocaAbierta) ? spritesheetA : spritesheet;
+
+  ctxSprite.drawImage(
+
+    hojaActiva,
+
+    sx,
+    sy,
+    sw,
+    sh,
+
+    dx,
+    dy,
+    ancho,
+    alto
+
+  );
+}
+
+
+// ======================================================
+// TRANSICIÓN ÚNICA CENTRADA EN CADA FRONTERA
+//
+// Antes cada frontera se calculaba dos veces:
+// - al final de la celda anterior
+// - al principio de la celda siguiente
+// Eso reiniciaba el fade. Ahora cada frontera tiene UNA sola banda
+// continua, centrada exactamente sobre el límite.
+// ======================================================
+
+const ZONA_FADE = 0.18; // ancho TOTAL de la transición, en fracción de celda
+
+function mezclaEje(pos){
+  // pos usa coordenadas de sector: 0..5.
+  pos = Math.max(0, Math.min(5, pos));
+
+  // Buscamos la frontera interior más cercana: 1,2,3,4.
+  const frontera = Math.round(pos);
+  const mediaZona = ZONA_FADE / 2;
+
+  if(frontera >= 1 && frontera <= 4 &&
+     Math.abs(pos - frontera) <= mediaZona){
+
+    // Una única progresión 0 -> 1 atravesando la frontera.
+    const inicio = frontera - mediaZona;
+    const t = Math.max(0, Math.min(1,
+      (pos - inicio) / ZONA_FADE
+    ));
+
+    return {
+      a: frontera - 1,
+      b: frontera,
+      t: t,
+      fade: true
+    };
+  }
+
+  // Fuera de la estrecha banda no hay interpolación.
+  const celda = Math.max(0, Math.min(4, Math.floor(pos)));
+  return {a:celda, b:celda, t:0, fade:false};
+}
+
+function dibujarSpritePorZonas(filaPos, columnaPos){
+  ctxSprite.clearRect(0,0,canvasSprite.width,canvasSprite.height);
+
+  const mx = mezclaEje(columnaPos);
+  const my = mezclaEje(filaPos);
+
+  const pesos = [
+    [my.a, mx.a, (1-my.t)*(1-mx.t)],
+    [my.a, mx.b, (1-my.t)*mx.t],
+    [my.b, mx.a, my.t*(1-mx.t)],
+    [my.b, mx.b, my.t*mx.t]
+  ];
+
+  const acumulados = new Map();
+  for(const [f,c,p] of pesos){
+    if(p <= 0) continue;
+    const k=f+','+c;
+    acumulados.set(k,(acumulados.get(k)||0)+p);
+  }
+
+  for(const [k,peso] of acumulados){
+    const [f,c]=k.split(',').map(Number);
+    dibujarCapa(f,c,peso);
+  }
+  ctxSprite.globalAlpha=1;
+}
+
+// ======================================================
+// SPRITE INICIAL
+// ======================================================
+
+dibujarSpritePorZonas(2.5,2.5);
+
+
+// ======================================================
+// LOOP
+// ======================================================
+
+function detectar(){
+
+
+  // ====================================================
+  // WEBCAM
+  // ====================================================
+
+  ctx.drawImage(
+
+    video,
+
+    0,
+    0,
+    canvasWebcam.width,
+    canvasWebcam.height
+
+  );
+
+
+  // ====================================================
+  // DETECTAR CARA
+  // ====================================================
+
+  const resultado =
+    detector.detectForVideo(
+
+      video,
+      performance.now()
+
+    );
+
+
+  // ====================================================
+  // GRID 5x5
+  // ====================================================
+
+  const sectorW =
+    canvasWebcam.width / 5;
+
+  const sectorH =
+    canvasWebcam.height / 5;
+
+
+  ctx.strokeStyle =
+    "rgba(255,255,255,0.35)";
+
+  ctx.lineWidth = 1;
+
+
+  for(let i=1;i<5;i++){
+
+    const x =
+      i * sectorW;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      x,
+      0
+    );
+
+    ctx.lineTo(
+      x,
+      canvasWebcam.height
+    );
+
+    ctx.stroke();
+
+  }
+
+
+  for(let i=1;i<5;i++){
+
+    const y =
+      i * sectorH;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      0,
+      y
+    );
+
+    ctx.lineTo(
+      canvasWebcam.width,
+      y
+    );
+
+    ctx.stroke();
+
+  }
+
+
+  // ====================================================
+  // SI HAY CARA
+  // ====================================================
+
+  if(resultado.detections.length > 0){
+
+    const cara =
+      resultado.detections[0];
+
+    const caja =
+      cara.boundingBox;
+
+
+    const x =
+      caja.originX;
+
+    const y =
+      caja.originY;
+
+    const w =
+      caja.width;
+
+    const h =
+      caja.height;
+
+
+    // centro real detectado
+
+    const cx =
+      x + w/2;
+
+    const cy =
+      y + h/2;
+
+
+    // ==================================================
+    // SUAVIZAR CENTRO
+    // ==================================================
+
+    if(cxSuave === null){
+
+      cxSuave = cx;
+      cySuave = cy;
+
+    }else{
+
+      cxSuave +=
+        (cx - cxSuave) *
+        SUAVIZADO;
+
+      cySuave +=
+        (cy - cySuave) *
+        SUAVIZADO;
+
+    }
+
+
+    // ==================================================
+    // POSICIÓN DECIMAL DENTRO DEL 5x5
+    //
+    // El centro de cada sector coincide exactamente
+    // con un sprite entero:
+    //
+    // centro pantalla => 2,2
+    // ==================================================
+
+    // Horizontal invertido para que el avatar gire en la dirección correcta.
+    // Vertical se mantiene tal cual.
+    let columna = 5 - (cxSuave / canvasWebcam.width * 5);
+    let fila = cySuave / canvasWebcam.height * 5;
+
+
+    columna =
+      Math.max(
+        0,
+        Math.min(4.999999,columna)
+      );
+
+    fila =
+      Math.max(
+        0,
+        Math.min(4.999999,fila)
+      );
+
+
+    // ==================================================
+    // SECTOR PRINCIPAL PARA DEBUG
+    // ==================================================
+
+    const columnaSector =
+      Math.max(
+        0,
+        Math.min(
+          4,
+          Math.floor(
+            cxSuave / sectorW
+          )
+        )
+      );
+
+    const filaSector =
+      Math.max(
+        0,
+        Math.min(
+          4,
+          Math.floor(
+            cySuave / sectorH
+          )
+        )
+      );
+
+
+    // ==================================================
+    // DESTACAR SECTOR
+    // ==================================================
+
+    ctx.fillStyle =
+      "rgba(236,138,75,0.12)";
+
+    ctx.fillRect(
+
+      columnaSector * sectorW,
+      filaSector * sectorH,
+
+      sectorW,
+      sectorH
+
+    );
+
+
+    // ==================================================
+    // BOUNDING BOX
+    // ==================================================
+
+    ctx.strokeStyle =
+      "#ec8a4b";
+
+    ctx.lineWidth = 3;
+
+    ctx.strokeRect(
+      x,
+      y,
+      w,
+      h
+    );
+
+
+    // ==================================================
+    // CENTRO REAL
+    // ==================================================
+
+    ctx.fillStyle =
+      "#c95b5b";
+
+    ctx.beginPath();
+
+    ctx.arc(
+      cx,
+      cy,
+      5,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    // ==================================================
+    // CENTRO SUAVIZADO
+    // ==================================================
+
+    ctx.fillStyle =
+      "#fcebdd";
+
+    ctx.beginPath();
+
+    ctx.arc(
+      cxSuave,
+      cySuave,
+      7,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    // cruz
+
+    ctx.strokeStyle =
+      "#fcebdd";
+
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      cxSuave-20,
+      cySuave
+    );
+
+    ctx.lineTo(
+      cxSuave+20,
+      cySuave
+    );
+
+    ctx.moveTo(
+      cxSuave,
+      cySuave-20
+    );
+
+    ctx.lineTo(
+      cxSuave,
+      cySuave+20
+    );
+
+    ctx.stroke();
+
+
+    // ==================================================
+    // DEBUG WEBCAM
+    // ==================================================
+
+    ctx.fillStyle =
+      "rgba(36,38,43,0.78)";
+
+    ctx.fillRect(
+      10,
+      390,
+      300,
+      80
+    );
+
+
+    ctx.fillStyle =
+      "white";
+
+    ctx.font =
+      "14px monospace";
+
+
+    ctx.fillText(
+      "Centro: " +
+      Math.round(cxSuave) +
+      ", " +
+      Math.round(cySuave),
+      20,
+      415
+    );
+
+
+    ctx.fillText(
+      "Sprite X: " +
+      columna.toFixed(2),
+      20,
+      438
+    );
+
+
+    ctx.fillText(
+      "Sprite Y: " +
+      fila.toFixed(2),
+      20,
+      461
+    );
+
+
+    // ==================================================
+    // SPRITE CON FADE
+    // ==================================================
+
+    dibujarSpritePorZonas(fila,columna);
+
+  }
+
+
+  requestAnimationFrame(
+    detectar
+  );
+
+}
+
+
+// ======================================================
+// CHATBOT OLLAMA + VOZ — INTERFAZ MÍNIMA
+// ======================================================
+const btnMicro = document.querySelector('#microfono');
+const webcam = document.querySelector('#webcam');
+const btnMinimizar = document.querySelector('#minimizarWebcam');
+
+btnMinimizar.addEventListener('click', () => {
+  webcam.classList.toggle('minimizada');
+  btnMinimizar.textContent =
+    webcam.classList.contains('minimizada') ? '+' : '−';
+});
+
+async function preguntar(texto){
+  texto = texto.trim();
+  if(!texto) return;
+
+  btnMicro.classList.remove('escuchando');
+  btnMicro.classList.add('pensando');
+  btnMicro.textContent = '…';
+
+  try{
+    const r = await fetch('../../ollama.php',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({mensaje:texto})
+    });
+
+    if(!r.ok) throw new Error('HTTP '+r.status);
+
+    const datos = await r.json();
+    const respuesta = datos.respuesta || 'No he podido responder.';
+
+    speechSynthesis.cancel();
+    detenerLipSync();
+
+    const voz = new SpeechSynthesisUtterance(respuesta);
+    voz.lang = 'es-EN';
+
+    voz.onstart = () => {
+      btnMicro.classList.remove('pensando');
+      btnMicro.textContent = '🎤';
+      iniciarLipSync();
+    };
+
+    voz.onend = () => {
+      detenerLipSync();
+      btnMicro.textContent = '🎤';
+    };
+
+    voz.onerror = () => {
+      detenerLipSync();
+      btnMicro.classList.remove('pensando');
+      btnMicro.textContent = '🎤';
+    };
+
+    speechSynthesis.speak(voz);
+
+  }catch(e){
+    console.error(e);
+    detenerLipSync();
+    btnMicro.classList.remove('pensando');
+    btnMicro.textContent = '🎤';
+  }
+}
+
+btnMicro.addEventListener('click', () => {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if(!SR){
+    console.error('Este navegador no dispone de SpeechRecognition.');
+    return;
+  }
+
+  speechSynthesis.cancel();
+  detenerLipSync();
+
+  const rec = new SR();
+  rec.lang = 'es-EN';
+  rec.interimResults = false;
+  rec.maxAlternatives = 1;
+
+  btnMicro.classList.add('escuchando');
+  btnMicro.textContent = '●';
+
+  rec.onresult = e => {
+    const texto = e.results[0][0].transcript;
+    preguntar(texto);
+  };
+
+  rec.onerror = e => {
+    console.error('SpeechRecognition:',e.error);
+    btnMicro.classList.remove('escuchando');
+    btnMicro.textContent = '🎤';
+  };
+
+  rec.onend = () => {
+    if(!btnMicro.classList.contains('pensando')){
+      btnMicro.classList.remove('escuchando');
+      btnMicro.textContent = '🎤';
+    }
+  };
+
+  rec.start();
+});
+
+// ======================================================
+// START
+// ======================================================
+
+detectar();
+
+</script>
+
+</body>
+</html>

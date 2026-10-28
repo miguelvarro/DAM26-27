@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>mavr | ejercicios de interfaces naturales</title>
+  <link rel="icon" href="../img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/ejercicios.css">
+</head>
+<body class="mv-ej">
+  <header class="mv-ej-cabecera">
+    <img src="../img/logo.svg" alt="">
+    <span class="marca">mavr | interfaz integrada</span>
+    <h1>Ejercicios independientes · UD2</h1>
+    <a class="mv-ej-volver" href="../index.html">← Aplicación</a>
+  </header>
+  <main class="mv-ej-indice">
+    <p>Ejercicios de la UD2 que no forman parte de la aplicación de gestión: detección del cuerpo con la cámara (MediaPipe) y realidad aumentada (A-Frame). Mantienen el código del material de referencia con el estilo de mavr.</p>
+    <p class="mv-ej-aviso">Necesitan cámara (y algunos micrófono): ábrelos desde <code>http://localhost:8000/ejercicios/</code> en Chrome o Edge y acepta los permisos. Cargan MediaPipe y A-Frame desde internet. Los avatares con chat usan el mismo <code>ollama.php</code> que el asistente.</p>
+    <h2>Partes y movimientos del cuerpo</h2>
+    <div class="mv-ej-rejilla">
+      <a class="mv-ej-tarjeta" href="cuerpo/001-reconocimiento%20de%20cara.html"><span class="ficha">001</span><div><strong>Reconocimiento de cara</strong><span>MediaPipe Face Detector: recuadro y puntos clave de la cara.</span></div></a>
+      <a class="mv-ej-tarjeta" href="cuerpo/002-manos.html"><span class="ficha">002</span><div><strong>Detección de manos</strong><span>MediaPipe Hands: articulaciones de los dedos en tiempo real.</span></div></a>
+      <a class="mv-ej-tarjeta" href="cuerpo/003-malla%20de%20la%20cara.html"><span class="ficha">003</span><div><strong>Malla de la cara</strong><span>Face Mesh: cientos de puntos que siguen la expresión.</span></div></a>
+      <a class="mv-ej-tarjeta" href="cuerpo/004-spritesheet.html"><span class="ficha">004</span><div><strong>Cara → sprite</strong><span>La orientación de la cabeza elige el fotograma de un personaje.</span></div></a>
+      <a class="mv-ej-tarjeta" href="cuerpo/005-con%20suavizado.html"><span class="ficha">005</span><div><strong>Sprite con suavizado</strong><span>Igual que el anterior, con transición suave entre fotogramas.</span></div></a>
+      <a class="mv-ej-tarjeta" href="cuerpo/006-raton.html"><span class="ficha">006</span><div><strong>Coordenadas del ratón</strong><span>Posición del puntero respecto al centro de la pantalla.</span></div></a>
+      <a class="mv-ej-tarjeta" href="cuerpo/006-integrafo.html"><span class="ficha">006</span><div><strong>Avatar con chat</strong><span>El avatar sigue tu cara y responde con Ollama y voz.</span></div></a>
+      <a class="mv-ej-tarjeta" href="cuerpo/007-avatar-chatbot-lipsync.html"><span class="ficha">007</span><div><strong>Avatar chatbot con lipsync</strong><span>El avatar mueve la boca mientras habla.</span></div></a>
+      <a class="mv-ej-tarjeta" href="cuerpo/008-avatar-minimal-ollama.html"><span class="ficha">008</span><div><strong>Avatar mínimo con Ollama</strong><span>Avatar a pantalla completa, webcam en miniatura y micrófono.</span></div></a>
+      <a class="mv-ej-tarjeta" href="cuerpo/009-avatar-minimal-corregido.html"><span class="ficha">009</span><div><strong>Avatar mínimo corregido</strong><span>Versión corregida del avatar mínimo.</span></div></a>
+      <a class="mv-ej-tarjeta" href="cuerpo/010-avatar-face-landmarker.html"><span class="ficha">010</span><div><strong>Avatar con Face Landmarker</strong><span>Seguimiento de cara con el modelo Face Landmarker.</span></div></a>
+    </div>
+    <h2>Realidad aumentada</h2>
+    <div class="mv-ej-rejilla">
+      <a class="mv-ej-tarjeta" href="realidad-aumentada/001-aframe.html"><span class="ficha">001</span><div><strong>A-Frame + seguimiento de cabeza</strong><span>Escena 3D cuya cámara sigue tu cabeza (efecto ventana).</span></div></a>
+      <a class="mv-ej-tarjeta" href="realidad-aumentada/002-denso.html"><span class="ficha">002</span><div><strong>Escena densa</strong><span>Más objetos a distintas profundidades para notar el paralaje.</span></div></a>
+      <a class="mv-ej-tarjeta" href="realidad-aumentada/003-denso.html"><span class="ficha">003</span><div><strong>Escena densa (v2)</strong><span>Añade la mano: avanzar y girar por la escena con gestos.</span></div></a>
+      <a class="mv-ej-tarjeta" href="realidad-aumentada/004-indice.html"><span class="ficha">004</span><div><strong>Índice</strong><span>Te mueves por la escena señalando con el dedo índice.</span></div></a>
+      <a class="mv-ej-tarjeta" href="realidad-aumentada/005-gradual.html"><span class="ficha">005</span><div><strong>Gradual</strong><span>La velocidad de avance aumenta y disminuye de forma gradual.</span></div></a>
+      <a class="mv-ej-tarjeta" href="realidad-aumentada/006-gradual.html"><span class="ficha">006</span><div><strong>Gradual (v2)</strong><span>Mejora del control gradual, con la velocidad en pantalla.</span></div></a>
+      <a class="mv-ej-tarjeta" href="realidad-aumentada/007-ciudad.html"><span class="ficha">007</span><div><strong>Ciudad</strong><span>Paseo por una ciudad con cabeza (paralaje) y mano (movimiento).</span></div></a>
+      <a class="mv-ej-tarjeta" href="realidad-aumentada/008-ciudad.html"><span class="ficha">008</span><div><strong>Ciudad (v2)</strong><span>Ciudad generada por código, con niebla y mismo control por gestos.</span></div></a>
+    </div>
+  </main>
+</body>
+</html>

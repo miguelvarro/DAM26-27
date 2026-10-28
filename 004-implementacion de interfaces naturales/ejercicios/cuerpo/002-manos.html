@@ -1,0 +1,359 @@
+<!doctype html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8">
+  <title>mavr | Detección de manos</title>
+
+  <style>
+    body{
+      background:#222;
+      color:white;
+      font-family:monospace;
+    }
+
+    #contenedor{
+      position:relative;
+      width:640px;
+      height:480px;
+    }
+
+    video,
+    canvas{
+      position:absolute;
+      left:0;
+      top:0;
+      width:640px;
+      height:480px;
+    }
+
+    video{
+      opacity:0;
+    }
+
+    canvas{
+      z-index:2;
+    }
+  </style>
+  <link rel="icon" href="../../img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../css/ejercicios.css">
+</head>
+
+<body class="mv-ej mv-ej-camara">
+
+  <header class="mv-ej-cabecera"><img src="../../img/logo.svg" alt=""><span class="marca">mavr | interfaz integrada</span><h1>Detección de manos</h1><a class="mv-ej-volver" href="../index.html">← Ejercicios</a></header>
+
+  <div id="contenedor">
+
+    <video
+      id="video"
+      width="640"
+      height="480"
+      autoplay
+      muted
+      playsinline>
+    </video>
+
+    <canvas
+      id="canvas"
+      width="640"
+      height="480">
+    </canvas>
+
+  </div>
+
+
+  <script type="module">
+
+    import {
+      HandLandmarker,
+      FilesetResolver
+    } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
+
+
+    const video = document.querySelector("#video");
+    const canvas = document.querySelector("#canvas");
+    const ctx = canvas.getContext("2d");
+
+
+    // ============================================
+    // 1. WEBCAM
+    // ============================================
+
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video:{
+        width:640,
+        height:480
+      }
+    });
+
+    video.srcObject = stream;
+
+    await video.play();
+
+    console.log("Webcam funcionando");
+    console.log(
+      "Resolución:",
+      video.videoWidth,
+      video.videoHeight
+    );
+
+
+    // ============================================
+    // 2. MEDIAPIPE
+    // ============================================
+
+    const vision = await FilesetResolver.forVisionTasks(
+      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+    );
+
+
+    const detector = await HandLandmarker.createFromOptions(
+      vision,
+      {
+        baseOptions:{
+          modelAssetPath:
+          "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task"
+        },
+
+        runningMode:"VIDEO",
+
+        numHands:2,
+
+        minHandDetectionConfidence:0.5,
+        minHandPresenceConfidence:0.5,
+        minTrackingConfidence:0.5
+      }
+    );
+
+
+    console.log("MediaPipe Hand Landmarker cargado");
+
+
+    // ============================================
+    // 3. CONEXIONES DEL ESQUELETO
+    // ============================================
+
+    const conexiones = [
+
+      // Pulgar
+      [0,1],
+      [1,2],
+      [2,3],
+      [3,4],
+
+      // Índice
+      [0,5],
+      [5,6],
+      [6,7],
+      [7,8],
+
+      // Corazón
+      [5,9],
+      [9,10],
+      [10,11],
+      [11,12],
+
+      // Anular
+      [9,13],
+      [13,14],
+      [14,15],
+      [15,16],
+
+      // Meñique
+      [13,17],
+      [17,18],
+      [18,19],
+      [19,20],
+
+      // Base de la palma
+      [0,17]
+
+    ];
+
+
+    // ============================================
+    // 4. LOOP
+    // ============================================
+
+    function detectar(){
+
+      // Dibujar webcam
+
+      ctx.drawImage(
+        video,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+
+
+      // Detectar manos
+
+      const resultado = detector.detectForVideo(
+        video,
+        performance.now()
+      );
+
+
+      // ============================================
+      // DEBUG GLOBAL
+      // ============================================
+
+      ctx.fillStyle = "rgba(36,38,43,0.78)";
+      ctx.fillRect(10,10,170,55);
+
+      ctx.fillStyle = "white";
+      ctx.font = "14px monospace";
+
+      ctx.fillText(
+        "Hands: " + resultado.landmarks.length,
+        20,
+        32
+      );
+
+      ctx.fillText(
+        "Video: " + video.readyState,
+        20,
+        52
+      );
+
+
+      // ============================================
+      // CADA MANO
+      // ============================================
+
+      for(
+        let mano = 0;
+        mano < resultado.landmarks.length;
+        mano++
+      ){
+
+        const puntos = resultado.landmarks[mano];
+
+
+        // ==========================================
+        // DIBUJAR LÍNEAS
+        // ==========================================
+
+        ctx.strokeStyle = "#ec8a4b";
+        ctx.lineWidth = 3;
+
+        for(const conexion of conexiones){
+
+          const a = puntos[conexion[0]];
+          const b = puntos[conexion[1]];
+
+          const ax = a.x * canvas.width;
+          const ay = a.y * canvas.height;
+
+          const bx = b.x * canvas.width;
+          const by = b.y * canvas.height;
+
+          ctx.beginPath();
+
+          ctx.moveTo(ax,ay);
+          ctx.lineTo(bx,by);
+
+          ctx.stroke();
+        }
+
+
+        // ==========================================
+        // DIBUJAR PUNTOS
+        // ==========================================
+
+        for(
+          let i = 0;
+          i < puntos.length;
+          i++
+        ){
+
+          const punto = puntos[i];
+
+          const x = punto.x * canvas.width;
+          const y = punto.y * canvas.height;
+
+
+          // Punto
+
+          ctx.fillStyle = "#c95b5b";
+
+          ctx.beginPath();
+
+          ctx.arc(
+            x,
+            y,
+            5,
+            0,
+            Math.PI*2
+          );
+
+          ctx.fill();
+
+
+          // Número del landmark
+
+          ctx.fillStyle = "white";
+          ctx.font = "12px monospace";
+
+          ctx.fillText(
+            i,
+            x + 7,
+            y - 7
+          );
+
+        }
+
+
+        // ==========================================
+        // TIPO DE MANO
+        // ==========================================
+
+        const info = resultado.handedness[mano];
+
+        if(info && info.length > 0){
+
+          const tipo = info[0].categoryName;
+
+          const confianza =
+            Math.round(info[0].score * 100);
+
+
+          // Landmark de la muñeca
+
+          const wrist = puntos[0];
+
+          const x = wrist.x * canvas.width;
+          const y = wrist.y * canvas.height;
+
+
+          ctx.fillStyle = "#fcebdd";
+          ctx.font = "18px monospace";
+
+          ctx.fillText(
+            tipo + " " + confianza + "%",
+            x,
+            y + 30
+          );
+
+        }
+
+      }
+
+
+      requestAnimationFrame(detectar);
+    }
+
+
+    // ============================================
+    // 5. START
+    // ============================================
+
+    detectar();
+
+  </script>
+
+</body>
+</html>
