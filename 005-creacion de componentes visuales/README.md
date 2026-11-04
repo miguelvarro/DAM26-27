@@ -4,6 +4,16 @@ Ejercicios de la **UD3 · Creación de componentes visuales**. Al contrario que 
 
 Se han tomado del material de referencia (`Material_DI/003-Creación de componentes visuales`) cambiando `jocarsa` por `mavr` en el código, las clases y los nombres de archivo (`mavr-texto.js`, `mavr-ui.js`, `mavr-componentes.js`…). La lógica de cada ejercicio no se ha tocado.
 
+## Estilo mavr
+
+Igual que los ejercicios independientes de la UD2:
+
+- `index.html`: índice con una tarjeta por ejercicio, agrupadas por subunidad.
+- `css/ejercicios.css`: paleta grafito + naranja, tipografía y esquinas redondeadas. Cada ejercicio la carga **al final del `<head>`**, después de sus propios estilos, para sobrescribirlos.
+- Cada página lleva la cabecera mavr con el logo (`img/logo.svg`) y el botón «← Ejercicios», y su contenido va dentro de una tarjeta blanca (`<main class="mv-ej-contenido">`).
+- `mavr-ui.js` inyecta su `<style>` al arrancar, así que quedaría por encima de la hoja común. Por eso las reglas de los componentes empiezan por `body.mv-ej`: tienen más especificidad y ganan.
+- Los colores del canvas del selector de hora circular (`mavr-hora`) se han pasado a la paleta mavr dentro de `mavr-ui.js` (v3, v4 y v4.1).
+
 ## Contenido
 
 | Carpeta | Contenidos de la UD | Qué hay |

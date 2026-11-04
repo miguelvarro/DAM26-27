@@ -1,6 +1,7 @@
 <!doctype html>
-<html>
+<html lang="es">
   <head>
+  <meta charset="UTF-8">
     <style>
       .mavr-texto article{
       	width:400px;
@@ -8,10 +9,19 @@
         border:1px solid grey;
       }
     </style>
-  </head>
-  <body>
+    <title>mavr | Etiqueta propia &lt;mavr-texto&gt;</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" href="../img/logo.svg" type="image/svg+xml">
+  <!-- estilo mavr: va al final del head para sobrescribir los estilos del ejercicio -->
+  <link rel="stylesheet" href="../css/ejercicios.css">
+</head>
+  <body class="mv-ej">
+<header class="mv-ej-cabecera"><img src="../img/logo.svg" alt=""><span class="marca">mavr | componentes visuales</span><h1>Etiqueta propia &lt;mavr-texto&gt;</h1><a class="mv-ej-volver" href="../index.html">← Ejercicios</a></header>
+<main class="mv-ej-contenido">
+
     <mavr-texto></mavr-texto>
-  </body>
+  </main>
+</body>
   <script>
     let elementos = document.querySelectorAll("mavr-texto");
 		elementos.forEach(function(elemento){

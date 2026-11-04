@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>mavr | ejercicios de componentes visuales</title>
+  <link rel="icon" href="img/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/ejercicios.css">
+</head>
+<body class="mv-ej">
+  <header class="mv-ej-cabecera">
+    <img src="img/logo.svg" alt="">
+    <span class="marca">mavr | componentes visuales</span>
+    <h1>Ejercicios · UD3</h1>
+  </header>
+  <main class="mv-ej-indice">
+    <p>Ejercicios de la UD3 · Creación de componentes visuales. No forman parte de la aplicación de gestión: en ellos se construye paso a paso una librería propia de componentes (<code>mavr-texto</code>, <code>mavr-ui.js</code> y <code>mavr-componentes.js</code>). Mantienen el código del material de referencia con el estilo de mavr.</p>
+    <p class="mv-ej-aviso">Los formularios envían a <code>procesa.php</code>: arranca el servidor con <code>php -S localhost:8000</code> desde esta carpeta y entra en <code>http://localhost:8000/</code>. Para ver los componentes sin enviar el formulario basta con <code>python -m http.server 8000</code>.</p>
+    <h2>001 · Concepto de componente</h2>
+    <div class="mv-ej-rejilla">
+      <a class="mv-ej-tarjeta" href="001-Concepto%20de%20componente/001-texto%20rico.html"><span class="ficha">001</span><div><strong>Textarea de partida</strong><span>El control nativo del que partimos: un textarea sin formato.</span></div></a>
+      <a class="mv-ej-tarjeta" href="001-Concepto%20de%20componente/002-mavrtextorico.html"><span class="ficha">002</span><div><strong>Etiqueta propia &lt;mavr-texto&gt;</strong><span>La etiqueta se sustituye por un article editable y un textarea oculto.</span></div></a>
+      <a class="mv-ej-tarjeta" href="001-Concepto%20de%20componente/003-vuelco%20el%20contenido.html"><span class="ficha">003</span><div><strong>Vuelco del contenido</strong><span>Al escribir, el HTML del article se copia al textarea oculto.</span></div></a>
+      <a class="mv-ej-tarjeta" href="001-Concepto%20de%20componente/004-pongo%20un%20boton.html"><span class="ficha">004</span><div><strong>Primer botón</strong><span>Aparece el botón «B»; de momento solo escribe en la consola.</span></div></a>
+      <a class="mv-ej-tarjeta" href="001-Concepto%20de%20componente/005-ia.html"><span class="ficha">005</span><div><strong>Editor rico completo</strong><span>Barra de herramientas con execCommand, enlaces y vista HTML.</span></div></a>
+      <a class="mv-ej-tarjeta" href="001-Concepto%20de%20componente/006-externalizo.html"><span class="ficha">006</span><div><strong>Componente externalizado</strong><span>El código pasa a mavr-texto.js y mavr-texto.css.</span></div></a>
+      <a class="mv-ej-tarjeta" href="001-Concepto%20de%20componente/007-formulario.html"><span class="ficha">007</span><div><strong>Dentro de un formulario</strong><span>El componente envía su contenido con name a procesa.php.</span></div></a>
+    </div>
+    <h2>002 · Propiedades, atributos y métodos</h2>
+    <div class="mv-ej-rejilla">
+      <a class="mv-ej-tarjeta" href="002-Propiedades%2C%20atributos%20y%20m%C3%A9todos/002-archivo%20descargado.html"><span class="ficha">001</span><div><strong>mavr-ui · versión 1</strong><span>Texto rico, Markdown, editor de código y firma.</span></div></a>
+      <a class="mv-ej-tarjeta" href="002-Propiedades%2C%20atributos%20y%20m%C3%A9todos/003-version%202/007-formulario-componentes.html"><span class="ficha">002</span><div><strong>mavr-ui · versión 2</strong><span>Añade la tabla de datos y el árbol.</span></div></a>
+      <a class="mv-ej-tarjeta" href="002-Propiedades%2C%20atributos%20y%20m%C3%A9todos/004-version3/mavr-componentes-v3/007-formulario-componentes.html"><span class="ficha">003</span><div><strong>mavr-ui · versión 3</strong><span>Añade calendario mensual, semanal y selector de hora circular.</span></div></a>
+      <a class="mv-ej-tarjeta" href="002-Propiedades%2C%20atributos%20y%20m%C3%A9todos/005-mavr-componentes-v4/007-formulario-componentes.html"><span class="ficha">004</span><div><strong>mavr-ui · versión 4</strong><span>Añade &lt;mavr-input&gt;: 22 tipos de dato con indicador visual.</span></div></a>
+      <a class="mv-ej-tarjeta" href="002-Propiedades%2C%20atributos%20y%20m%C3%A9todos/006-mavr-componentes-v4.1/007-formulario-componentes.html"><span class="ficha">005</span><div><strong>mavr-ui · versión 4.1</strong><span>El editor de código muestra números de línea.</span></div></a>
+    </div>
+    <h2>003 · Eventos; asociación de acciones a eventos</h2>
+    <div class="mv-ej-rejilla">
+      <a class="mv-ej-tarjeta" href="003-Eventos%3B%20asociaci%C3%B3n%20de%20acciones%20a%20eventos/001-plantilla%20controles.html"><span class="ficha">001</span><div><strong>Plantilla de controles nativos</strong><span>Todos los controles de formulario de HTML, sin librería.</span></div></a>
+      <a class="mv-ej-tarjeta" href="003-Eventos%3B%20asociaci%C3%B3n%20de%20acciones%20a%20eventos/002-reemplazar%20input.html"><span class="ficha">002</span><div><strong>Reemplazar los input</strong><span>Primera mavr-componentes.js: cada input pasa a un div editable con su tipo.</span></div></a>
+      <a class="mv-ej-tarjeta" href="003-Eventos%3B%20asociaci%C3%B3n%20de%20acciones%20a%20eventos/003-empaquetado/002-reemplazar%20input.html"><span class="ficha">003</span><div><strong>Empaquetado 003</strong><span>La librería y su CSS se separan en su propia carpeta.</span></div></a>
+      <a class="mv-ej-tarjeta" href="003-Eventos%3B%20asociaci%C3%B3n%20de%20acciones%20a%20eventos/004-empaquetado/002-reemplazar%20input.html"><span class="ficha">004</span><div><strong>Empaquetado 004</strong><span>Validación del email al escribir y botón para ver la contraseña.</span></div></a>
+      <a class="mv-ej-tarjeta" href="003-Eventos%3B%20asociaci%C3%B3n%20de%20acciones%20a%20eventos/005-empaquetado/002-reemplazar%20input.html"><span class="ficha">005</span><div><strong>Empaquetado 005</strong><span>Checkbox → interruptor, radios y botones propios, textarea.</span></div></a>
+      <a class="mv-ej-tarjeta" href="003-Eventos%3B%20asociaci%C3%B3n%20de%20acciones%20a%20eventos/006-empaquetado/002-reemplazar%20input.html"><span class="ficha">006</span><div><strong>Empaquetado 006</strong><span>Misma librería que la 005 (punto de control).</span></div></a>
+      <a class="mv-ej-tarjeta" href="003-Eventos%3B%20asociaci%C3%B3n%20de%20acciones%20a%20eventos/007-empaquetado/002-reemplazar%20input.html"><span class="ficha">007</span><div><strong>Empaquetado 007</strong><span>El formulario se envía a procesa.php con los valores sincronizados.</span></div></a>
+      <a class="mv-ej-tarjeta" href="003-Eventos%3B%20asociaci%C3%B3n%20de%20acciones%20a%20eventos/008-empaquetado/002-reemplazar-input.html"><span class="ficha">008</span><div><strong>Empaquetado 008 · ampliado</strong><span>Select buscable, multiselect, output, progress y meter.</span></div></a>
+    </div>
+    <h2>004–007 · Solo índice de contenidos</h2>
+    <div class="mv-ej-rejilla">
+      <a class="mv-ej-tarjeta solo-teoria" href="004-Persistencia%20del%20componente/000-Introducci%C3%B3n.md"><span class="ficha">004</span><div><strong>Persistencia del componente</strong><span>Archivos, bases de datos, cookies, localStorage, sessionStorage y preferencias.</span></div></a>
+      <a class="mv-ej-tarjeta solo-teoria" href="005-Herramientas%20para%20desarrollo%20de%20componentes%20visuales/000-Introducci%C3%B3n.md"><span class="ficha">005</span><div><strong>Herramientas para desarrollo de componentes</strong><span>Conceptos, elementos, propiedades, métodos y relaciones.</span></div></a>
+      <a class="mv-ej-tarjeta solo-teoria" href="006-Prueba%20de%20los%20componentes/000-Introducci%C3%B3n.md"><span class="ficha">006</span><div><strong>Prueba de los componentes</strong><span>Creación de una librería de componentes.</span></div></a>
+      <a class="mv-ej-tarjeta solo-teoria" href="007-Empaquetado%20de%20componentes/000-Introducci%C3%B3n.md"><span class="ficha">007</span><div><strong>Empaquetado de componentes</strong><span>Distribución de librerías: creación de un framework UI.</span></div></a>
+    </div>
+  </main>
+</body>
+</html>

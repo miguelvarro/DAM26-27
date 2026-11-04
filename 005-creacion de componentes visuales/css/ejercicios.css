@@ -1,0 +1,243 @@
+/* =========================================================
+   mavr | iu · estilo común de los ejercicios de la UD3
+   (creación de componentes visuales)
+
+   Se carga DESPUÉS de los estilos de cada ejercicio para
+   sobrescribirlos sin tocar su lógica.
+
+   Truco de especificidad: las librerías mavr-ui.js meten su
+   propio <style> al final del <head> cuando arrancan, así que
+   ganarían a esta hoja si los selectores pesaran lo mismo.
+   Por eso las reglas de los componentes empiezan por
+   «body.mv-ej», que suma una clase y una etiqueta más.
+   ========================================================= */
+:root{
+  --negro:#24262b;--negro2:#2e3138;--negro3:#3a3e46;--negro4:#4a4f59;
+  --naranja:#ec8a4b;--naranja-osc:#c96d32;--naranja-claro:#fcebdd;
+  --crema:#f6f3f0;--seccion:#ebe6e1;--borde:#e2dbd4;--texto-suave:#6b6f78;
+  --error:#c95b5b;--exito:#5f9e6e;--radio:10px;--radio-lg:14px;
+  --sombra:0 2px 8px rgba(0,0,0,.08);--sombra-alta:0 12px 40px rgba(0,0,0,.25);
+  --anillo:0 0 0 3px var(--naranja-claro);
+  --fuente:Ubuntu,"Segoe UI",Roboto,Arial,sans-serif
+}
+
+/* =========================================================
+   1. Base, cabecera e índice (igual que los ejercicios de la UD2)
+   ========================================================= */
+body.mv-ej{font-family:var(--fuente);font-size:13px;color:var(--negro);background:var(--crema);margin:0;accent-color:var(--naranja)}
+body.mv-ej *{box-sizing:border-box}
+body.mv-ej button,body.mv-ej input,body.mv-ej select,body.mv-ej textarea{font-family:inherit}
+
+.mv-ej-cabecera{display:flex;align-items:center;gap:12px;height:58px;padding:0 16px;background:var(--negro);color:#f2f2f2;border-bottom:3px solid var(--naranja);margin-bottom:24px}
+.mv-ej-cabecera img{width:30px;height:30px}
+.mv-ej-cabecera .marca{font-weight:500;white-space:nowrap}
+body.mv-ej .mv-ej-cabecera h1{margin:0 0 0 8px;padding:0 0 0 14px;border:0;border-left:1px solid var(--negro4);font-size:15px;font-weight:500;color:var(--naranja-claro);text-align:left}
+.mv-ej-volver{margin-left:auto;padding:7px 16px;border-radius:999px;background:var(--naranja);color:#fff;text-decoration:none;font-weight:600;white-space:nowrap}
+.mv-ej-volver:hover{background:var(--naranja-osc)}
+
+.mv-ej-indice{max-width:1100px;margin:0 auto;padding:0 16px 40px}
+.mv-ej-indice > p{color:var(--texto-suave)}
+.mv-ej-aviso{padding:12px 16px;border-radius:var(--radio);background:var(--naranja-claro);color:var(--naranja-osc);margin:0 0 20px}
+.mv-ej-indice h2{font-size:16px;margin:26px 0 12px}
+.mv-ej-rejilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.mv-ej-tarjeta{display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:var(--radio-lg);background:#fff;box-shadow:var(--sombra);color:inherit;text-decoration:none;transition:transform .15s,box-shadow .15s}
+.mv-ej-tarjeta:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.12)}
+.mv-ej-tarjeta .ficha{width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:50%;background:var(--naranja);color:#fff;font-weight:700;font-size:12px}
+.mv-ej-tarjeta strong{display:block;margin-bottom:3px}
+.mv-ej-tarjeta span{color:var(--texto-suave);font-size:12px;line-height:1.4}
+.mv-ej-tarjeta.solo-teoria .ficha{background:var(--seccion);color:var(--texto-suave)}
+
+/* =========================================================
+   2. Lienzo del ejercicio: una tarjeta blanca centrada
+   ========================================================= */
+.mv-ej-contenido{max-width:960px;margin:0 auto 40px;padding:24px 28px;background:#fff;border-radius:var(--radio-lg);box-shadow:var(--sombra)}
+.mv-ej-contenido h1{margin:0 0 6px;font-size:20px}
+.mv-ej-contenido h2{margin:28px 0 10px;padding-bottom:6px;font-size:15px;border-bottom:2px solid var(--naranja-claro)}
+.mv-ej-contenido h1 + h2,.mv-ej-contenido form > h2:first-child{margin-top:8px}
+.mv-ej-contenido p{line-height:1.5}
+.mv-ej-contenido label{display:block;margin:10px 0 4px;font-weight:600;color:var(--negro2)}
+.mv-ej-contenido code{padding:1px 6px;border-radius:6px;background:var(--seccion)}
+
+/* ---------- controles nativos ----------
+   :where() no suma especificidad: así cualquier regla de un
+   componente (aunque sea de las librerías) gana a estas. */
+body.mv-ej :where(.mv-ej-contenido) :where(input:not([type=checkbox],[type=radio],[type=range],[type=color],[type=file],[type=submit],[type=reset],[type=button],[type=image],[type=hidden]),select,textarea){
+  min-height:40px;padding:9px 12px;border:1px solid var(--borde);border-radius:var(--radio);background:#fff;color:var(--negro);font-size:13px;outline:none;transition:border-color .15s,box-shadow .15s
+}
+body.mv-ej :where(.mv-ej-contenido) :where(input,select,textarea):focus{border-color:var(--naranja);box-shadow:var(--anillo)}
+body.mv-ej :where(.mv-ej-contenido) :where(input[type=file]){padding:6px 0}
+body.mv-ej :where(.mv-ej-contenido) :where(input[type=file])::file-selector-button{margin-right:10px;padding:7px 14px;border:0;border-radius:999px;background:var(--seccion);color:var(--negro);font-weight:600;cursor:pointer}
+body.mv-ej :where(.mv-ej-contenido) :where(button,input[type=submit],input[type=reset],input[type=button]){
+  padding:9px 20px;border:0;border-radius:999px;background:var(--naranja);color:#fff;font-weight:600;cursor:pointer;transition:background .15s
+}
+body.mv-ej :where(.mv-ej-contenido) :where(button,input[type=submit],input[type=reset],input[type=button]):hover{background:var(--naranja-osc)}
+body.mv-ej :where(.mv-ej-contenido) :where(input[type=reset]){background:var(--seccion);color:var(--negro)}
+body.mv-ej :where(.mv-ej-contenido) :where(details){padding:10px 14px;border-radius:var(--radio);background:var(--crema)}
+body.mv-ej :where(.mv-ej-contenido) :where(summary){font-weight:600;cursor:pointer}
+body.mv-ej :where(.mv-ej-contenido) :where(dialog){border:0;border-radius:var(--radio-lg);padding:22px;box-shadow:var(--sombra-alta)}
+body.mv-ej :where(.mv-ej-contenido) :where(dialog)::backdrop{background:rgba(36,38,43,.45)}
+body.mv-ej :where(.mv-ej-contenido) :where(fieldset){border:1px solid var(--borde);border-radius:var(--radio);padding:10px 14px}
+body.mv-ej :where(.mv-ej-contenido) :where(progress,meter){accent-color:var(--naranja)}
+body.mv-ej :where(.mv-ej-contenido) :where(p[contenteditable=true]){padding:8px 12px;border:1px dashed var(--borde);border-radius:var(--radio);outline:none}
+
+/* =========================================================
+   3. Subunidad 001 · <mavr-texto> (mavr-texto.css y ejercicios 002–005)
+   ========================================================= */
+body.mv-ej .mavr-texto{max-width:100%;font-family:var(--fuente)}
+body.mv-ej .mavr-texto .barra{gap:4px;padding:6px;background:var(--seccion);border:1px solid var(--borde);border-bottom:0;border-radius:var(--radio-lg) var(--radio-lg) 0 0}
+body.mv-ej .mavr-texto button{min-width:32px;height:30px;padding:0 8px;border:1px solid var(--borde);border-radius:8px;background:#fff;color:var(--negro);font-weight:400;cursor:pointer}
+body.mv-ej .mavr-texto button:hover{background:var(--naranja-claro);border-color:var(--naranja)}
+body.mv-ej .mavr-texto article{max-width:100%;padding:12px;border:1px solid var(--borde);border-radius:var(--radio-lg);background:#fff;outline:none;overflow:auto}
+body.mv-ej .mavr-texto .barra ~ article,body.mv-ej .mavr-texto .barra ~ textarea{width:100%;border-radius:0 0 var(--radio-lg) var(--radio-lg)}
+body.mv-ej .mavr-texto article:focus{border-color:var(--naranja);box-shadow:var(--anillo)}
+body.mv-ej .mavr-texto textarea{max-width:100%;padding:12px;border:1px solid var(--borde);border-radius:var(--radio-lg);background:var(--negro);color:#f2f2f2;font:13px/1.5 monospace;outline:none}
+/* ejercicio 004: el botón «B» va suelto, sin barra */
+body.mv-ej .mavr-texto > button:first-child{margin-bottom:6px}
+
+/* =========================================================
+   4. Subunidad 002 · librería mavr-ui.js (todas las versiones)
+   ========================================================= */
+body.mv-ej .mavr-control{font-family:var(--fuente);border:1px solid var(--borde);border-radius:var(--radio-lg);background:#fff;box-shadow:var(--sombra);margin:10px 0}
+body.mv-ej .mavr-barra{gap:4px;padding:6px;background:var(--seccion);border-bottom:1px solid var(--borde)}
+body.mv-ej .mavr-barra button{min-width:32px;height:30px;padding:0 9px;border:1px solid var(--borde);border-radius:8px;background:#fff;color:var(--negro);font-weight:400}
+body.mv-ej .mavr-barra button:hover{background:var(--naranja-claro);border-color:var(--naranja)}
+body.mv-ej .mavr-barra button.activo{background:var(--naranja);border-color:var(--naranja);color:#fff}
+body.mv-ej .mavr-area,body.mv-ej .mavr-markdown .mavr-preview{line-height:1.5}
+body.mv-ej .mavr-markdown textarea,body.mv-ej .mavr-texto.mavr-control textarea{background:var(--crema);color:var(--negro);border-radius:0;box-shadow:none;min-height:240px}
+
+/* editor de código: modo oscuro con la paleta mavr */
+body.mv-ej .mavr-editor .mavr-codigo,body.mv-ej .mavr-editor-cuerpo{background:var(--negro);color:#f2f2f2;border:0;border-radius:0;box-shadow:none}
+body.mv-ej .mavr-editor-lineas{background:var(--negro2);color:var(--texto-suave);border-right-color:var(--negro3)}
+body.mv-ej .mavr-editor-linea-actual{background:rgba(236,138,75,.10)}
+body.mv-ej .mavr-editor-estado{color:var(--texto-suave)}
+
+/* firma */
+body.mv-ej .mavr-firma .mavr-firma-info{color:var(--texto-suave);border-top-color:var(--borde);background:var(--crema)}
+
+/* tabla */
+body.mv-ej .mavr-tabla-controles{background:var(--crema);border-bottom-color:var(--borde)}
+body.mv-ej .mavr-tabla-controles input,body.mv-ej .mavr-tabla-controles select{padding:8px 12px;border:1px solid var(--borde);border-radius:999px;background:#fff;outline:none}
+body.mv-ej .mavr-tabla-controles input:focus{border-color:var(--naranja);box-shadow:var(--anillo)}
+body.mv-ej .mavr-tabla th{background:var(--seccion);color:var(--negro2)}
+body.mv-ej .mavr-tabla th:hover{background:var(--naranja-claro)}
+body.mv-ej .mavr-tabla th[data-dir]{color:var(--naranja-osc)}
+body.mv-ej .mavr-tabla th,body.mv-ej .mavr-tabla td{border-bottom-color:var(--borde)}
+body.mv-ej .mavr-tabla tbody tr:hover td{background:var(--crema)}
+body.mv-ej .mavr-tabla-pie{color:var(--texto-suave)}
+body.mv-ej .mavr-tabla-paginacion button{min-width:30px;padding:5px 10px;border:1px solid var(--borde);border-radius:999px;background:#fff;color:var(--negro);font-weight:400}
+body.mv-ej .mavr-tabla-paginacion button:hover:not(:disabled){background:var(--naranja-claro);border-color:var(--naranja)}
+
+/* árbol */
+body.mv-ej .mavr-arbol-nodo{border-radius:8px}
+body.mv-ej .mavr-arbol-nodo:hover{background:var(--naranja-claro)}
+body.mv-ej .mavr-arbol-nodo.seleccionado{background:var(--naranja);color:#fff}
+body.mv-ej .mavr-arbol-toggle{color:var(--naranja-osc)}
+
+/* calendario mensual */
+body.mv-ej .mavr-cal-cabecera{background:var(--crema);border-bottom-color:var(--borde)}
+body.mv-ej .mavr-cal-cabecera button{border:1px solid var(--borde);border-radius:50%;width:34px;background:#fff;color:var(--negro);padding:0;font-weight:400}
+body.mv-ej .mavr-cal-cabecera button:hover{background:var(--naranja-claro);border-color:var(--naranja)}
+body.mv-ej .mavr-cal-dia-semana{color:var(--texto-suave)}
+body.mv-ej .mavr-cal-dia{border-radius:50%}
+body.mv-ej .mavr-cal-dia:hover{background:var(--naranja-claro);border-color:transparent}
+body.mv-ej .mavr-cal-dia.hoy{border-color:var(--naranja);color:var(--naranja-osc)}
+body.mv-ej .mavr-cal-dia.seleccionado{background:var(--naranja);color:#fff}
+body.mv-ej .mavr-cal-valor,body.mv-ej .mavr-semana-valor{color:var(--texto-suave);border-top-color:var(--borde);background:var(--crema)}
+
+/* calendario semanal */
+body.mv-ej .mavr-semana-cabecera{background:var(--crema);border-bottom-color:var(--borde)}
+body.mv-ej .mavr-semana-cabecera button{padding:7px 14px;border:1px solid var(--borde);border-radius:999px;background:#fff;color:var(--negro);font-weight:400}
+body.mv-ej .mavr-semana-cabecera button:hover{background:var(--naranja-claro);border-color:var(--naranja)}
+body.mv-ej .mavr-semana-dia{background:var(--seccion);border-color:var(--borde)}
+body.mv-ej .mavr-semana-hora{background:var(--crema);border-color:var(--borde);color:var(--texto-suave)}
+body.mv-ej .mavr-semana-slot{border-color:var(--seccion)}
+body.mv-ej .mavr-semana-slot:hover{background:var(--naranja-claro)}
+body.mv-ej .mavr-semana-slot.seleccionado{background:var(--naranja);box-shadow:inset 0 0 0 2px var(--naranja-osc)}
+
+/* selector de hora circular (los colores del canvas se cambian en mavr-ui.js) */
+body.mv-ej .mavr-hora-valor{color:var(--naranja-osc);border-top-color:var(--borde)}
+body.mv-ej .mavr-hora-leyenda{color:var(--texto-suave)}
+body.mv-ej .mavr-hora-leyenda span::before{background:var(--naranja)}
+
+/* <mavr-input>: input con indicador del tipo de dato */
+body.mv-ej .mavr-input{border:0;background:transparent;box-shadow:none;margin:8px 0}
+body.mv-ej .mavr-input-envoltura{min-height:42px;border:1px solid var(--borde);border-radius:var(--radio)}
+body.mv-ej .mavr-input-envoltura:focus-within{border-color:var(--naranja);box-shadow:var(--anillo)}
+body.mv-ej .mavr-input-icono{background:var(--naranja-claro);border-right-color:var(--borde);color:var(--naranja-osc);font-family:var(--fuente);filter:none}
+body.mv-ej .mavr-input-campo{font-family:var(--fuente);font-size:13px;color:var(--negro)}
+body.mv-ej .mavr-input-tipo{color:var(--texto-suave)}
+body.mv-ej .mavr-input-envoltura.invalido{border-color:var(--error)}
+body.mv-ej .mavr-input-envoltura.invalido .mavr-input-icono{background:#f8e1e1;color:var(--error)}
+body.mv-ej .mavr-input-envoltura.valido:not(.vacio) .mavr-input-icono{background:#e3f0e6;color:var(--exito)}
+body.mv-ej .mavr-input-ayuda{color:var(--texto-suave)}
+
+/* =========================================================
+   5. Subunidad 003 · librería mavr-componentes.js (003 → 008)
+   ========================================================= */
+body.mv-ej .mavr-componentes{margin:10px 0;font-family:var(--fuente)}
+body.mv-ej .mavr-componentes label{margin:0 0 4px}
+body.mv-ej .mavr-componentes .control{min-height:40px}
+/* esquinas redondeadas: el primer elemento del control redondea la izquierda
+   y el último la derecha, así las piezas quedan unidas como un solo campo */
+body.mv-ej .mavr-componentes .control > :first-child{border-top-left-radius:var(--radio);border-bottom-left-radius:var(--radio)}
+body.mv-ej .mavr-componentes .control > :last-child{border-top-right-radius:var(--radio);border-bottom-right-radius:var(--radio)}
+body.mv-ej .mavr-componentes .control > .switch,body.mv-ej .mavr-componentes .control > .boton-mavr{border-radius:999px}
+body.mv-ej .mavr-componentes .control > .radio-mavr{border-radius:50%}
+
+/* zona editable y cajita del tipo */
+body.mv-ej .mavr-componentes .control > div:not(.tipo-input):not(.switch):not(.radio-mavr):not(.boton-mavr),
+body.mv-ej .mavr-componentes .campo{border:1px solid var(--borde);background:#fff;color:var(--negro)}
+/* la primera versión (002) no usa la clase .campo: la zona editable es el div suelto */
+body.mv-ej .mavr-componentes .control > div[contenteditable]{flex:1;min-width:0}
+body.mv-ej .mavr-componentes .campo:focus,body.mv-ej .mavr-componentes .control > div:focus{border-color:var(--naranja);box-shadow:var(--anillo)}
+body.mv-ej .mavr-componentes .tipo-input{border:1px solid var(--borde);background:var(--naranja-claro);color:var(--naranja-osc)}
+body.mv-ej .mavr-componentes .campo.valido{border:2px solid var(--exito)}
+body.mv-ej .mavr-componentes .campo.invalido{border:2px solid var(--error)}
+
+/* «lenguaje de interacción»: hundido = se escribe, elevado = se pulsa */
+body.mv-ej .mavr-componentes .focusable{box-shadow:inset 0 1px 2px rgba(0,0,0,.08)}
+body.mv-ej .mavr-componentes .clickable{box-shadow:var(--sombra)}
+body.mv-ej .mavr-componentes .clickable:focus{outline:2px solid var(--naranja);outline-offset:2px}
+
+/* contraseña */
+body.mv-ej .mavr-componentes .ojo-password{border:1px solid var(--borde);border-left:0;background:#fff}
+body.mv-ej .mavr-componentes .ojo-password:hover{background:var(--naranja-claro)}
+body.mv-ej .mavr-componentes .ojo-password.activo{background:var(--naranja-claro)}
+body.mv-ej .mavr-componentes .icono-ojo{border-color:var(--negro3)}
+body.mv-ej .mavr-componentes .icono-ojo::after{background:var(--naranja-osc)}
+
+/* checkbox → interruptor */
+body.mv-ej .mavr-componentes .switch{border:0;background:var(--seccion)}
+body.mv-ej .mavr-componentes .switch span{top:3px;left:3px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+body.mv-ej .mavr-componentes .switch.activo{background:var(--naranja)}
+body.mv-ej .mavr-componentes .switch.activo span{left:25px;background:#fff}
+
+/* radio */
+body.mv-ej .mavr-componentes .radio-mavr{border:2px solid var(--borde);background:#fff}
+body.mv-ej .mavr-componentes .radio-mavr.activo{border-color:var(--naranja)}
+body.mv-ej .mavr-componentes .radio-mavr span{background:var(--naranja)}
+
+/* botón */
+body.mv-ej .mavr-componentes .boton-mavr{padding:9px 20px;border:0;border-radius:999px;background:var(--naranja);color:#fff;font-weight:600}
+body.mv-ej .mavr-componentes .boton-mavr:hover{background:var(--naranja-osc)}
+
+/* select / combobox buscable (008) */
+body.mv-ej .mavr-componentes .control-select .combo-campo{border-radius:var(--radio) 0 0 var(--radio)}
+body.mv-ej .mavr-componentes .combo-flecha{border:1px solid var(--borde);border-left:0;border-radius:0;background:var(--naranja-claro);color:var(--naranja-osc)}
+body.mv-ej .mavr-componentes .select-lista{margin-top:4px;border:1px solid var(--borde);border-radius:var(--radio);box-shadow:var(--sombra-alta)}
+body.mv-ej .mavr-componentes .select-opcion{border-bottom-color:var(--seccion)}
+body.mv-ej .mavr-componentes .select-opcion:hover,body.mv-ej .mavr-componentes .select-opcion.seleccionada{background:var(--naranja-claro)}
+body.mv-ej .mavr-componentes .select-opcion.seleccionada::before{color:var(--naranja-osc)}
+body.mv-ej .mavr-componentes .select-grupo{background:var(--seccion);color:var(--texto-suave)}
+body.mv-ej .mavr-componentes .multiselect-mavr{border:1px solid var(--borde);border-radius:var(--radio) 0 0 var(--radio);overflow:hidden}
+body.mv-ej .mavr-componentes .multiselect-mavr .select-lista{margin:0;border:0;box-shadow:none}
+body.mv-ej .mavr-componentes .select-buscador{border-bottom-color:var(--borde)}
+
+/* output, progress y meter */
+body.mv-ej .mavr-componentes .salida-mavr{background:var(--crema)}
+body.mv-ej .mavr-componentes .barra-mavr{border:1px solid var(--borde);border-radius:var(--radio)}
+body.mv-ej .mavr-componentes .barra-mavr-relleno{background:var(--naranja)}
+body.mv-ej .mavr-componentes .barra-mavr span{font-family:var(--fuente);font-weight:600}
+
+/* separación entre los campos sueltos de los formularios de la subunidad 001 */
+.mv-ej-contenido form > input + *,.mv-ej-contenido form > .mavr-texto + *{margin-top:10px}

@@ -1,9 +1,15 @@
 <!doctype html>
 <html lang="es">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mavr UI - Demo v4</title></head>
-<body>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>mavr | mavr-ui · versión 4.1</title>  <link rel="icon" href="../../img/logo.svg" type="image/svg+xml">
+  <!-- estilo mavr: va al final del head para sobrescribir los estilos del ejercicio -->
+  <link rel="stylesheet" href="../../css/ejercicios.css">
+</head>
+<body class="mv-ej">
+<header class="mv-ej-cabecera"><img src="../../img/logo.svg" alt=""><span class="marca">mavr | componentes visuales</span><h1>mavr-ui · versión 4.1</h1><a class="mv-ej-volver" href="../../index.html">← Ejercicios</a></header>
+<main class="mv-ej-contenido">
+
 <form action="procesa.php" method="POST">
-  <h1>Mavr UI</h1>
+  
   <h2>Inputs semánticos con indicador visual</h2>
   <p>Cada control indica visualmente el tipo de dato esperado y conserva un input HTML real en su interior.</p>
   <mavr-input type="text" name="texto" placeholder="Texto libre"></mavr-input>
@@ -47,4 +53,5 @@ Texto con **negrita** y *cursiva*.</mavr-markdown>
   <p><button type="submit">Enviar formulario</button></p>
 </form>
 <script src="mavr-ui.js"></script>
+</main>
 </body></html>
