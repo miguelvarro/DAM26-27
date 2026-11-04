@@ -1,0 +1,367 @@
+/* ============================================================
+   MAVR COMPONENTES
+   ============================================================ */
+
+.mavr-componentes{
+  margin:10px;
+  font-family:Arial, sans-serif;
+}
+
+.mavr-componentes label{
+  display:block;
+  margin-bottom:5px;
+}
+
+
+/* ============================================================
+   CONTROL GENERAL
+   ============================================================ */
+
+.mavr-componentes .control{
+  display:flex;
+  align-items:stretch;
+
+  margin:5px 0;
+
+  min-height:40px;
+}
+
+
+/* ============================================================
+   CAMPO
+   ============================================================ */
+
+.mavr-componentes .campo{
+  flex:1;
+
+  min-width:0;
+  min-height:20px;
+
+  padding:10px;
+
+  outline:none;
+
+  border:1px solid grey;
+
+  box-sizing:border-box;
+
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.mavr-componentes .campo:focus{
+  box-shadow:
+    0 0 0 2px rgba(0,0,0,0.08);
+}
+
+
+/* ============================================================
+   INDICADOR DERECHO
+   ============================================================ */
+
+.mavr-componentes .tipo-input{
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  width:32px;
+  min-width:32px;
+
+  padding:0 4px;
+
+  border:1px solid grey;
+  border-left:0;
+
+  box-sizing:border-box;
+
+  font-family:monospace;
+  font-size:11px;
+  font-weight:bold;
+
+  user-select:none;
+}
+
+
+/* ============================================================
+   VALIDACIÓN
+   ============================================================ */
+
+.mavr-componentes .campo.valido{
+  border:2px solid green;
+  padding:9px;
+}
+
+.mavr-componentes .campo.invalido{
+  border:2px solid red;
+  padding:9px;
+}
+
+
+/* ============================================================
+   PASSWORD
+   ============================================================ */
+
+.mavr-componentes .ojo-password{
+
+  width:36px;
+  min-width:36px;
+
+  position:relative;
+
+  padding:0;
+
+  border:1px solid grey;
+  border-left:0;
+
+  background:white;
+
+  cursor:pointer;
+}
+
+
+/* Ojo exterior */
+
+.mavr-componentes .icono-ojo{
+
+  position:absolute;
+
+  width:18px;
+  height:11px;
+
+  left:50%;
+  top:50%;
+
+  transform:
+    translate(-50%,-50%)
+    rotate(0deg);
+
+  border:2px solid #555;
+
+  border-radius:
+    70% 30%
+    70% 30%;
+
+  box-sizing:border-box;
+}
+
+
+/* Pupila */
+
+.mavr-componentes .icono-ojo::after{
+
+  content:"";
+
+  position:absolute;
+
+  width:4px;
+  height:4px;
+
+  border-radius:50%;
+
+  background:#555;
+
+  left:50%;
+  top:50%;
+
+  transform:
+    translate(-50%,-50%);
+}
+
+
+.mavr-componentes
+.ojo-password:hover{
+
+  background:#eee;
+}
+
+
+.mavr-componentes
+.ojo-password.activo{
+
+  background:#ddd;
+}
+
+
+/* ============================================================
+   CHECKBOX -> SWITCH
+   ============================================================ */
+
+.mavr-componentes .switch{
+
+  position:relative;
+
+  width:48px;
+  height:26px;
+
+  border:1px solid grey;
+
+  border-radius:20px;
+
+  box-sizing:border-box;
+
+  cursor:pointer;
+
+  transition:
+    background 0.25s;
+}
+
+
+.mavr-componentes .switch span{
+
+  position:absolute;
+
+  width:20px;
+  height:20px;
+
+  left:2px;
+  top:2px;
+
+  border-radius:50%;
+
+  background:grey;
+
+  transition:
+    left 0.25s,
+    background 0.25s;
+}
+
+
+.mavr-componentes
+.switch.activo{
+
+  background:#ddd;
+}
+
+
+.mavr-componentes
+.switch.activo span{
+
+  left:24px;
+
+  background:#222;
+}
+
+
+/* ============================================================
+   RADIO
+   ============================================================ */
+
+.mavr-componentes
+.radio-mavr{
+
+  width:26px;
+  height:26px;
+
+  position:relative;
+
+  border:2px solid grey;
+
+  border-radius:50%;
+
+  box-sizing:border-box;
+
+  cursor:pointer;
+}
+
+
+.mavr-componentes
+.radio-mavr span{
+
+  position:absolute;
+
+  width:0;
+  height:0;
+
+  left:50%;
+  top:50%;
+
+  border-radius:50%;
+
+  background:#333;
+
+  transform:
+    translate(-50%,-50%);
+
+  transition:
+    width 0.2s,
+    height 0.2s;
+}
+
+
+.mavr-componentes
+.radio-mavr.activo span{
+
+  width:14px;
+  height:14px;
+}
+
+
+/* ============================================================
+   TEXTAREA
+   ============================================================ */
+
+.mavr-componentes
+.campo-textarea{
+
+  min-height:120px;
+
+  white-space:pre-wrap;
+
+  overflow:auto;
+}
+
+
+/* ============================================================
+   BUTTON
+   ============================================================ */
+
+.mavr-componentes
+.boton-mavr{
+
+  display:inline-flex;
+
+  align-items:center;
+  justify-content:center;
+
+  padding:10px 20px;
+
+  border:1px solid grey;
+
+  cursor:pointer;
+
+  user-select:none;
+
+  box-sizing:border-box;
+
+  transition:
+    background 0.15s,
+    transform 0.1s;
+}
+
+
+.mavr-componentes
+.boton-mavr:hover{
+
+  background:#eee;
+}
+
+
+.mavr-componentes
+.boton-mavr:active{
+
+  background:#ddd;
+
+  transform:
+    translateY(1px);
+}
+
+
+.mavr-componentes
+.boton-mavr:focus{
+
+  outline:2px solid grey;
+
+  outline-offset:2px;
+}

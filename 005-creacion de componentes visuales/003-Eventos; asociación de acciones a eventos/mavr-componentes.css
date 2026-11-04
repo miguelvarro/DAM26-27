@@ -1,0 +1,42 @@
+.mavr-componentes{
+  margin:10px;
+}
+
+.mavr-componentes .control{
+  display:flex;
+  align-items:stretch;
+  margin:5px 0px;
+}
+
+.mavr-componentes .tipo-input{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  min-width:40px;
+  padding:10px;
+
+  border:1px solid grey;
+  border-right:0;
+
+  font-family:monospace;
+  font-weight:bold;
+
+  box-sizing:border-box;
+}
+
+.mavr-componentes .control > div{
+  flex:1;
+
+  outline:none;
+  padding:10px;
+
+  border:1px solid grey;
+
+  min-height:20px;
+  box-sizing:border-box;
+}
+
+.mavr-componentes label{
+  display:block;
+}

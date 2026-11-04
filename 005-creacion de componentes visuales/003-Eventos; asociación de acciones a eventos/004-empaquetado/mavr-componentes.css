@@ -1,0 +1,98 @@
+.mavr-componentes{
+  margin:10px;
+}
+
+.mavr-componentes label{
+  display:block;
+  margin-bottom:5px;
+}
+
+/* Control completo */
+
+.mavr-componentes .control{
+  display:flex;
+  align-items:stretch;
+  margin:5px 0px;
+}
+
+/* Zona editable */
+
+.mavr-componentes .campo{
+  flex:1;
+
+  outline:none;
+
+  padding:10px;
+
+  border:1px solid grey;
+
+  min-height:20px;
+
+  box-sizing:border-box;
+
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+/* Caja pequeña derecha */
+
+.mavr-componentes .tipo-input{
+  display:flex;
+
+  align-items:center;
+  justify-content:center;
+
+  width:32px;
+  min-width:32px;
+
+  border:1px solid grey;
+  border-left:0;
+
+  font-family:monospace;
+  font-size:12px;
+  font-weight:bold;
+
+  box-sizing:border-box;
+
+  user-select:none;
+}
+
+/* EMAIL VÁLIDO */
+
+.mavr-componentes .campo.valido{
+  border:2px solid green;
+  padding:9px;
+}
+
+/* EMAIL INCORRECTO */
+
+.mavr-componentes .campo.invalido{
+  border:2px solid red;
+  padding:9px;
+}
+
+/* Botón mostrar contraseña */
+
+.mavr-componentes .ojo-password{
+  width:34px;
+
+  border:1px solid grey;
+  border-left:0;
+
+  background:white;
+
+  cursor:pointer;
+
+  font-size:16px;
+
+  padding:0;
+}
+
+.mavr-componentes .ojo-password:hover{
+  background:#eee;
+}
+
+.mavr-componentes .ojo-password.activo{
+  background:#ddd;
+}

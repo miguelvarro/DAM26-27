@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mavr UI</title>
+</head>
+<body>
+  <form action="procesa.php" method="POST">
+    <p><input type="text" name="nombre" placeholder="Nombre"></p>
+
+    <h2>Editor rico</h2>
+    <mavr-texto name="mensaje"><p>Hola <b>mundo</b></p></mavr-texto>
+
+    <h2>Markdown</h2>
+    <mavr-markdown name="documentacion"># Título
+
+Texto con **negrita** y *cursiva*.</mavr-markdown>
+
+    <h2>Editor de código</h2>
+    <mavr-editor name="codigo" language="javascript">function hola(){
+  console.log("Hola mundo");
+}</mavr-editor>
+
+    <h2>Firma</h2>
+    <mavr-firma name="firma"></mavr-firma>
+
+    <p><button type="submit">Enviar formulario</button></p>
+  </form>
+  <script src="mavr-ui.js"></script>
+</body>
+</html>

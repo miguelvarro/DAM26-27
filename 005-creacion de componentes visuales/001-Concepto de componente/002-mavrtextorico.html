@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      .mavr-texto article{
+      	width:400px;
+        height:400px;
+        border:1px solid grey;
+      }
+    </style>
+  </head>
+  <body>
+    <mavr-texto></mavr-texto>
+  </body>
+  <script>
+    let elementos = document.querySelectorAll("mavr-texto");
+		elementos.forEach(function(elemento){
+    	let elementoenmemoria = elemento
+      let contenedor = document.createElement("div")
+      contenedor.classList.add("mavr-texto")
+      elementoenmemoria.after(contenedor);
+      elemento.remove()
+      let contenedor_rico = document.createElement("article")
+      let contenedor_pobre = document.createElement("textarea")
+      contenedor.appendChild(contenedor_rico)
+      contenedor.appendChild(contenedor_pobre)
+      contenedor_pobre.style.display = "none"
+      contenedor_rico.setAttribute("contenteditable",true)
+    })
+  </script>
+</html>

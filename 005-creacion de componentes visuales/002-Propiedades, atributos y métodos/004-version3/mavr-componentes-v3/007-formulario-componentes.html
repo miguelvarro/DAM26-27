@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="UTF-8"><title>Mavr UI - Demo v3</title></head>
+<body>
+<form action="procesa.php" method="POST">
+  <p><input type="text" name="nombre" placeholder="Nombre"></p>
+  <h2>Editor rico</h2><mavr-texto name="mensaje"><p>Hola <b>mundo</b></p></mavr-texto>
+  <h2>Markdown</h2><mavr-markdown name="documentacion"># Título
+
+Texto con **negrita** y *cursiva*.</mavr-markdown>
+  <h2>Editor de código</h2><mavr-editor name="codigo" language="javascript">function hola(){
+  console.log("Hola mundo");
+}</mavr-editor>
+  <h2>Firma</h2><mavr-firma name="firma"></mavr-firma>
+  <h2>DataTable</h2><mavr-tabla><table><thead><tr><th>Nombre</th><th>Apellidos</th><th>Edad</th><th>Ciudad</th></tr></thead><tbody>
+    <tr><td>Ana</td><td>García</td><td>28</td><td>Valencia</td></tr><tr><td>Juan</td><td>Martínez</td><td>35</td><td>Madrid</td></tr><tr><td>Laura</td><td>Sánchez</td><td>22</td><td>Sevilla</td></tr><tr><td>Carlos</td><td>López</td><td>41</td><td>Valencia</td></tr><tr><td>Marta</td><td>Ruiz</td><td>31</td><td>Alicante</td></tr>
+  </tbody></table></mavr-tabla>
+  <h2>TreeView</h2><mavr-arbol name="seleccion_arbol"><ul><li>Documentos<ul><li>factura.pdf</li><li>informe.pdf</li></ul></li><li>Proyectos<ul><li>mavr<ul><li>index.html</li><li>app.js</li></ul></li></ul></li></ul></mavr-arbol>
+  <h2>Calendario mensual</h2><mavr-calendario name="fecha" value="2026-10-02"></mavr-calendario>
+  <h2>Calendario semanal con slots</h2><mavr-semana name="cita" value="2026-10-02 18:30" inicio="08:00" fin="21:00" intervalo="30"></mavr-semana>
+  <h2>Selector de hora circular</h2><mavr-hora name="hora" value="18:35:20"></mavr-hora>
+  <p><button type="submit">Enviar formulario</button></p>
+</form>
+<script src="mavr-ui.js"></script>
+</body></html>

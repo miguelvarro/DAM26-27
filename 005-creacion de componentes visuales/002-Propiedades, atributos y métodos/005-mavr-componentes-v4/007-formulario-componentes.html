@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mavr UI - Demo v4</title></head>
+<body>
+<form action="procesa.php" method="POST">
+  <h1>Mavr UI</h1>
+  <h2>Inputs semánticos con indicador visual</h2>
+  <p>Cada control indica visualmente el tipo de dato esperado y conserva un input HTML real en su interior.</p>
+  <mavr-input type="text" name="texto" placeholder="Texto libre"></mavr-input>
+  <mavr-input type="nombre" name="nombre" placeholder="Nombre y apellidos"></mavr-input>
+  <mavr-input type="usuario" name="usuario" placeholder="Nombre de usuario"></mavr-input>
+  <mavr-input type="email" name="email" placeholder="correo@ejemplo.com" required></mavr-input>
+  <mavr-input type="password" name="password" placeholder="Contraseña" minlength="7"></mavr-input>
+  <mavr-input type="tel" name="telefono" placeholder="+34 600 000 000"></mavr-input>
+  <mavr-input type="url" name="web" placeholder="https://ejemplo.com"></mavr-input>
+  <mavr-input type="search" name="busqueda" placeholder="Buscar..."></mavr-input>
+  <mavr-input type="integer" name="unidades" placeholder="Unidades" min="0"></mavr-input>
+  <mavr-input type="number" name="numero" placeholder="Número"></mavr-input>
+  <mavr-input type="decimal" name="decimal" placeholder="12.75"></mavr-input>
+  <mavr-input type="moneda" name="importe" placeholder="125.50" min="0"></mavr-input>
+  <mavr-input type="porcentaje" name="porcentaje" placeholder="75" min="0" max="100"></mavr-input>
+  <mavr-input type="postal" name="codigo_postal" placeholder="46001" pattern="[0-9]{5}"></mavr-input>
+  <mavr-input type="dni" name="documento" placeholder="12345678Z"></mavr-input>
+  <mavr-input type="date" name="fecha_input"></mavr-input>
+  <mavr-input type="time" name="hora_input"></mavr-input>
+  <mavr-input type="datetime-local" name="fecha_hora"></mavr-input>
+  <mavr-input type="month" name="mes"></mavr-input>
+  <mavr-input type="week" name="semana_input"></mavr-input>
+  <mavr-input type="color" name="color" value="#333333"></mavr-input>
+  <mavr-input type="range" name="nivel" value="50" min="0" max="100"></mavr-input>
+
+  <h2>Editor rico</h2><mavr-texto name="mensaje"><p>Hola <b>mundo</b></p></mavr-texto>
+  <h2>Markdown</h2><mavr-markdown name="documentacion"># Título
+
+Texto con **negrita** y *cursiva*.</mavr-markdown>
+  <h2>Editor de código</h2><mavr-editor name="codigo" language="javascript">function hola(){
+  console.log("Hola mundo");
+}</mavr-editor>
+  <h2>Firma</h2><mavr-firma name="firma"></mavr-firma>
+  <h2>DataTable</h2><mavr-tabla><table><thead><tr><th>Nombre</th><th>Apellidos</th><th>Edad</th><th>Ciudad</th></tr></thead><tbody>
+    <tr><td>Ana</td><td>García</td><td>28</td><td>Valencia</td></tr><tr><td>Juan</td><td>Martínez</td><td>35</td><td>Madrid</td></tr><tr><td>Laura</td><td>Sánchez</td><td>22</td><td>Sevilla</td></tr><tr><td>Carlos</td><td>López</td><td>41</td><td>Valencia</td></tr><tr><td>Marta</td><td>Ruiz</td><td>31</td><td>Alicante</td></tr>
+  </tbody></table></mavr-tabla>
+  <h2>TreeView</h2><mavr-arbol name="seleccion_arbol"><ul><li>Documentos<ul><li>factura.pdf</li><li>informe.pdf</li></ul></li><li>Proyectos<ul><li>mavr<ul><li>index.html</li><li>app.js</li></ul></li></ul></li></ul></mavr-arbol>
+  <h2>Calendario mensual</h2><mavr-calendario name="fecha" value="2026-10-02"></mavr-calendario>
+  <h2>Calendario semanal con slots</h2><mavr-semana name="cita" value="2026-10-02 18:30" inicio="08:00" fin="21:00" intervalo="30"></mavr-semana>
+  <h2>Selector de hora circular</h2><mavr-hora name="hora" value="18:35:20"></mavr-hora>
+  <p><button type="submit">Enviar formulario</button></p>
+</form>
+<script src="mavr-ui.js"></script>
+</body></html>

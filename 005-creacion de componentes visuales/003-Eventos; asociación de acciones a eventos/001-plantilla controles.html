@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>Controles HTML nativos</title>
+</head>
+<body>
+
+<h1>Controles HTML nativos</h1>
+
+<form>
+
+<h2>Texto</h2>
+
+<label for="text">text</label>
+<input type="text" id="text" name="text">
+
+<label for="password">password</label>
+<input type="password" id="password" name="password">
+
+<label for="email">email</label>
+<input type="email" id="email" name="email">
+
+<label for="search">search</label>
+<input type="search" id="search" name="search">
+
+<label for="tel">tel</label>
+<input type="tel" id="tel" name="tel">
+
+<label for="url">url</label>
+<input type="url" id="url" name="url">
+
+
+<h2>Números</h2>
+
+<label for="number">number</label>
+<input type="number" id="number" name="number">
+
+<label for="number-minmax">number min/max/step</label>
+<input type="number" id="number-minmax" name="number-minmax" min="0" max="100" step="5">
+
+<label for="range">range</label>
+<input type="range" id="range" name="range">
+
+<label for="range-minmax">range min/max/step</label>
+<input type="range" id="range-minmax" name="range-minmax" min="0" max="100" step="10">
+
+
+<h2>Fecha y hora</h2>
+
+<label for="date">date</label>
+<input type="date" id="date" name="date">
+
+<label for="time">time</label>
+<input type="time" id="time" name="time">
+
+<label for="datetime-local">datetime-local</label>
+<input type="datetime-local" id="datetime-local" name="datetime-local">
+
+<label for="month">month</label>
+<input type="month" id="month" name="month">
+
+<label for="week">week</label>
+<input type="week" id="week" name="week">
+
+
+<h2>Selección</h2>
+
+<label for="checkbox">checkbox</label>
+<input type="checkbox" id="checkbox" name="checkbox">
+
+<label for="checkbox-checked">checkbox checked</label>
+<input type="checkbox" id="checkbox-checked" name="checkbox-checked" checked>
+
+<label>radio A</label>
+<input type="radio" name="radio" value="a">
+
+<label>radio B</label>
+<input type="radio" name="radio" value="b">
+
+<label>radio C</label>
+<input type="radio" name="radio" value="c">
+
+
+<h2>Color</h2>
+
+<label for="color">color</label>
+<input type="color" id="color" name="color">
+
+
+<h2>Archivos</h2>
+
+<label for="file">file</label>
+<input type="file" id="file" name="file">
+
+<label for="file-multiple">file multiple</label>
+<input type="file" id="file-multiple" name="file-multiple" multiple>
+
+<label for="file-image">file image</label>
+<input type="file" id="file-image" name="file-image" accept="image/*">
+
+<label for="file-audio">file audio</label>
+<input type="file" id="file-audio" name="file-audio" accept="audio/*">
+
+<label for="file-video">file video</label>
+<input type="file" id="file-video" name="file-video" accept="video/*">
+
+<label for="capture-user">capture user</label>
+<input type="file" id="capture-user" name="capture-user" accept="image/*" capture="user">
+
+<label for="capture-environment">capture environment</label>
+<input type="file" id="capture-environment" name="capture-environment" accept="image/*" capture="environment">
+
+
+<h2>Textarea</h2>
+
+<label for="textarea">textarea</label>
+<textarea id="textarea" name="textarea"></textarea>
+
+<label for="textarea-rows">textarea rows/cols</label>
+<textarea id="textarea-rows" name="textarea-rows" rows="5" cols="40"></textarea>
+
+
+<h2>Select</h2>
+
+<label for="select">select</label>
+<select id="select" name="select">
+    <option value="">Selecciona</option>
+    <option value="1">Uno</option>
+    <option value="2">Dos</option>
+    <option value="3">Tres</option>
+</select>
+
+<label for="select-groups">select + optgroup</label>
+<select id="select-groups" name="select-groups">
+    <optgroup label="Frontend">
+        <option>HTML</option>
+        <option>CSS</option>
+        <option>JavaScript</option>
+    </optgroup>
+    <optgroup label="Backend">
+        <option>PHP</option>
+        <option>Python</option>
+        <option>Java</option>
+    </optgroup>
+</select>
+
+<label for="select-multiple">select multiple</label>
+<select id="select-multiple" name="select-multiple" multiple>
+    <option>HTML</option>
+    <option>CSS</option>
+    <option>JavaScript</option>
+    <option>PHP</option>
+    <option>Python</option>
+</select>
+
+<label for="select-size">select size</label>
+<select id="select-size" name="select-size" size="4">
+    <option>Uno</option>
+    <option>Dos</option>
+    <option>Tres</option>
+    <option>Cuatro</option>
+    <option>Cinco</option>
+</select>
+
+
+<h2>Datalist</h2>
+
+<label for="datalist-text">text + datalist</label>
+<input type="text" id="datalist-text" name="datalist-text" list="lista-texto">
+
+<datalist id="lista-texto">
+    <option value="HTML">
+    <option value="CSS">
+    <option value="JavaScript">
+    <option value="PHP">
+    <option value="Python">
+</datalist>
+
+<label for="datalist-range">range + datalist</label>
+<input type="range" id="datalist-range" name="datalist-range" min="0" max="100" list="lista-range">
+
+<datalist id="lista-range">
+    <option value="0">
+    <option value="25">
+    <option value="50">
+    <option value="75">
+    <option value="100">
+</datalist>
+
+
+<h2>Botones</h2>
+
+<button type="button">button</button>
+
+<button type="submit">submit</button>
+
+<button type="reset">reset</button>
+
+<input type="button" value="input button">
+
+<input type="submit" value="input submit">
+
+<input type="reset" value="input reset">
+
+
+<h2>Image</h2>
+
+<input type="image" src="https://via.placeholder.com/100x40" alt="Enviar">
+
+
+<h2>Hidden</h2>
+
+<input type="hidden" name="hidden" value="valor-oculto">
+
+<p>Hay un input hidden justo antes de este texto.</p>
+
+
+<h2>Estados</h2>
+
+<label for="normal">normal</label>
+<input type="text" id="normal" name="normal">
+
+<label for="value">value</label>
+<input type="text" id="value" name="value" value="Valor">
+
+<label for="placeholder">placeholder</label>
+<input type="text" id="placeholder" name="placeholder" placeholder="Placeholder">
+
+<label for="required">required</label>
+<input type="text" id="required" name="required" required>
+
+<label for="readonly">readonly</label>
+<input type="text" id="readonly" name="readonly" value="Solo lectura" readonly>
+
+<label for="disabled">disabled</label>
+<input type="text" id="disabled" name="disabled" value="Desactivado" disabled>
+
+<label for="autofocus">autofocus</label>
+<input type="text" id="autofocus" name="autofocus">
+
+<label for="maxlength">maxlength</label>
+<input type="text" id="maxlength" name="maxlength" maxlength="10">
+
+<label for="minlength">minlength</label>
+<input type="text" id="minlength" name="minlength" minlength="5">
+
+<label for="pattern">pattern</label>
+<input type="text" id="pattern" name="pattern" pattern="[A-Z]{3}">
+
+<label for="spellcheck">spellcheck</label>
+<input type="text" id="spellcheck" name="spellcheck" spellcheck="true">
+
+
+<h2>Autocomplete</h2>
+
+<label for="autocomplete-name">name</label>
+<input type="text" id="autocomplete-name" name="autocomplete-name" autocomplete="name">
+
+<label for="autocomplete-given-name">given-name</label>
+<input type="text" id="autocomplete-given-name" name="autocomplete-given-name" autocomplete="given-name">
+
+<label for="autocomplete-family-name">family-name</label>
+<input type="text" id="autocomplete-family-name" name="autocomplete-family-name" autocomplete="family-name">
+
+<label for="autocomplete-email">email</label>
+<input type="email" id="autocomplete-email" name="autocomplete-email" autocomplete="email">
+
+<label for="autocomplete-tel">tel</label>
+<input type="tel" id="autocomplete-tel" name="autocomplete-tel" autocomplete="tel">
+
+<label for="autocomplete-street">street-address</label>
+<input type="text" id="autocomplete-street" name="autocomplete-street" autocomplete="street-address">
+
+<label for="autocomplete-postal">postal-code</label>
+<input type="text" id="autocomplete-postal" name="autocomplete-postal" autocomplete="postal-code">
+
+<label for="autocomplete-country">country</label>
+<input type="text" id="autocomplete-country" name="autocomplete-country" autocomplete="country">
+
+<label for="autocomplete-username">username</label>
+<input type="text" id="autocomplete-username" name="autocomplete-username" autocomplete="username">
+
+<label for="autocomplete-password">current-password</label>
+<input type="password" id="autocomplete-password" name="autocomplete-password" autocomplete="current-password">
+
+<label for="autocomplete-new-password">new-password</label>
+<input type="password" id="autocomplete-new-password" name="autocomplete-new-password" autocomplete="new-password">
+
+<label for="autocomplete-cc">cc-number</label>
+<input type="text" id="autocomplete-cc" name="autocomplete-cc" autocomplete="cc-number">
+
+
+<h2>Inputmode</h2>
+
+<label for="inputmode-none">none</label>
+<input type="text" id="inputmode-none" inputmode="none">
+
+<label for="inputmode-text">text</label>
+<input type="text" id="inputmode-text" inputmode="text">
+
+<label for="inputmode-decimal">decimal</label>
+<input type="text" id="inputmode-decimal" inputmode="decimal">
+
+<label for="inputmode-numeric">numeric</label>
+<input type="text" id="inputmode-numeric" inputmode="numeric">
+
+<label for="inputmode-tel">tel</label>
+<input type="text" id="inputmode-tel" inputmode="tel">
+
+<label for="inputmode-search">search</label>
+<input type="text" id="inputmode-search" inputmode="search">
+
+<label for="inputmode-email">email</label>
+<input type="text" id="inputmode-email" inputmode="email">
+
+<label for="inputmode-url">url</label>
+<input type="text" id="inputmode-url" inputmode="url">
+
+
+<h2>Fieldset</h2>
+
+<fieldset>
+    <legend>Legend</legend>
+
+    <label for="fieldset-text">Texto</label>
+    <input type="text" id="fieldset-text" name="fieldset-text">
+
+    <label for="fieldset-checkbox">Checkbox</label>
+    <input type="checkbox" id="fieldset-checkbox" name="fieldset-checkbox">
+</fieldset>
+
+<fieldset disabled>
+    <legend>Fieldset disabled</legend>
+
+    <label for="fieldset-disabled-text">Texto</label>
+    <input type="text" id="fieldset-disabled-text">
+
+    <button type="button">Botón</button>
+</fieldset>
+
+
+<h2>Output</h2>
+
+<label for="a">A</label>
+<input type="number" id="a" name="a" value="10">
+
+<label for="b">B</label>
+<input type="number" id="b" name="b" value="20">
+
+<output name="resultado" for="a b">30</output>
+
+
+<h2>Progress</h2>
+
+<label for="progress">progress</label>
+<progress id="progress" value="65" max="100">65%</progress>
+
+<label for="progress-indeterminate">progress indeterminate</label>
+<progress id="progress-indeterminate"></progress>
+
+
+<h2>Meter</h2>
+
+<label for="meter">meter</label>
+<meter id="meter" min="0" max="100" value="50">50</meter>
+
+<label for="meter-low">meter low</label>
+<meter id="meter-low" min="0" max="100" low="30" high="70" optimum="90" value="20">20</meter>
+
+<label for="meter-medium">meter medium</label>
+<meter id="meter-medium" min="0" max="100" low="30" high="70" optimum="90" value="50">50</meter>
+
+<label for="meter-high">meter high</label>
+<meter id="meter-high" min="0" max="100" low="30" high="70" optimum="90" value="90">90</meter>
+
+
+<h2>Botones disabled</h2>
+
+<button type="button" disabled>button disabled</button>
+
+<input type="button" value="input button disabled" disabled>
+
+
+<h2>Select disabled</h2>
+
+<select disabled>
+    <option>Select desactivado</option>
+</select>
+
+<select>
+    <option>Normal</option>
+    <option disabled>Opción disabled</option>
+    <option>Normal</option>
+</select>
+
+
+<h2>Textarea estados</h2>
+
+<textarea placeholder="placeholder"></textarea>
+
+<textarea readonly>readonly</textarea>
+
+<textarea disabled>disabled</textarea>
+
+<textarea required></textarea>
+
+
+<h2>Direction</h2>
+
+<label for="dirname">dirname</label>
+<input type="text" id="dirname" name="mensaje" dirname="mensaje.dir">
+
+
+<h2>Botones de formulario</h2>
+
+<button type="submit" formmethod="get">GET</button>
+
+<button type="submit" formmethod="post">POST</button>
+
+<button type="submit" formnovalidate>Sin validación</button>
+
+
+<h2>Todos los input type</h2>
+
+<input type="button" value="button">
+
+<input type="checkbox">
+
+<input type="color">
+
+<input type="date">
+
+<input type="datetime-local">
+
+<input type="email">
+
+<input type="file">
+
+<input type="hidden">
+
+<input type="image" src="https://via.placeholder.com/100x40" alt="image">
+
+<input type="month">
+
+<input type="number">
+
+<input type="password">
+
+<input type="radio">
+
+<input type="range">
+
+<input type="reset">
+
+<input type="search">
+
+<input type="submit">
+
+<input type="tel">
+
+<input type="text">
+
+<input type="time">
+
+<input type="url">
+
+<input type="week">
+
+
+<h2>Envío</h2>
+
+<input type="submit">
+
+<input type="reset">
+
+</form>
+
+
+<h2>Elementos interactivos nativos relacionados</h2>
+
+<details>
+    <summary>summary dentro de details</summary>
+    Contenido de details.
+</details>
+
+<dialog id="dialog">
+    <form method="dialog">
+        <label for="dialog-input">Campo</label>
+        <input type="text" id="dialog-input">
+        <button>Cerrar</button>
+    </form>
+</dialog>
+
+<button type="button" onclick="document.getElementById('dialog').showModal()">Abrir dialog</button>
+
+
+<h2>Contenteditable</h2>
+
+<p contenteditable="true">Este párrafo es editable.</p>
+
+</body>
+</html>
