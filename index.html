@@ -4,20 +4,408 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Desarrollo de Interfaces - DAM</title>
+    <title>Desarrollo de Interfaces | DAM 26-27</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, sans-serif;
+            background: #111318;
+            color: #e5e7eb;
+        }
+
+        header {
+            background: #191c23;
+            border-bottom: 1px solid #30343d;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .etiqueta {
+            color: #f97316;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        h1 {
+            font-size: clamp(28px, 5vw, 42px);
+            margin: 12px 0;
+        }
+
+        header p {
+            color: #9ca3af;
+        }
+
+        .buscador {
+            width: 100%;
+            padding: 15px;
+            margin: 20px 0;
+            background: #191c23;
+            border: 1px solid #30343d;
+            color: white;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .carpeta {
+            background: #191c23;
+            border: 1px solid #30343d;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        summary {
+            padding: 18px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        summary:hover {
+            background: #222630;
+        }
+
+        .contenido {
+            padding: 0 18px 18px;
+        }
+
+        .contenido .carpeta {
+            margin-top: 10px;
+        }
+
+        .archivo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 14px 0;
+            border-bottom: 1px solid #30343d;
+        }
+
+        .nombre {
+            overflow-wrap: anywhere;
+        }
+
+        .acciones {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .demo {
+            background: #ea580c;
+            color: white;
+        }
+
+        .codigo {
+            color: #d1d5db;
+            border: 1px solid #414650;
+        }
+
+        .btn:hover {
+            opacity: .8;
+        }
+
+        .aviso {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        footer {
+            text-align: center;
+            color: #6b7280;
+            padding: 30px;
+        }
+
+        footer a {
+            color: #f97316;
+        }
+    </style>
 </head>
+
 <body>
 
-    <h1>Desarrollo de Interfaces</h1>
-    <p>Material didáctico - Curso 2026/2027</p>
+    <header>
+        <div class="container">
+            <span class="etiqueta">
+                CURSO 2026 / 2027
+            </span>
 
-    <h2>Unidades didácticas</h2>
+            <h1>Desarrollo de Interfaces</h1>
 
-    <ul>
-        <li>UD1 - Desarrollo de interfaces</li>
-        <li>UD2 - Interfaces naturales</li>
-        <li>UD3 - Componentes visuales</li>
-    </ul>
+            <p>
+                Material didáctico, ejercicios y proyectos
+                de 2º DAM.
+            </p>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <input
+            type="search"
+            id="buscador"
+            class="buscador"
+            placeholder="Buscar ejercicios o proyectos..."
+        >
+
+        <div id="repositorio">
+            Cargando material del repositorio...
+        </div>
+
+    </main>
+
+    <footer>
+        Miguel Ángel Vargas ·
+        <a href="https://github.com/miguelvarro/DAM26-27"
+           target="_blank"
+           rel="noopener noreferrer">
+            Ver repositorio en GitHub
+        </a>
+    </footer>
+
+    <script>
+        const usuario = "miguelvarro";
+        const repo = "DAM26-27";
+        const rama = "main";
+
+        const api = `https://api.github.com/repos/${usuario}/${repo}/git/trees/${rama}?recursive=1`;
+
+        const github = `https://github.com/${usuario}/${repo}/blob/${rama}/`;
+
+        const pages = `https://${usuario}.github.io/${repo}/`;
+
+        const contenedor = document.getElementById("repositorio");
+
+        let archivos = [];
+
+        // Codificar correctamente espacios y caracteres especiales
+        function codificarRuta(ruta) {
+            return ruta
+                .split("/")
+                .map(encodeURIComponent)
+                .join("/");
+        }
+
+        // Obtener todos los archivos del repositorio
+        async function cargarRepositorio() {
+            try {
+                const respuesta = await fetch(api);
+
+                if (!respuesta.ok) {
+                    throw new Error("No se pudo consultar GitHub");
+                }
+
+                const datos = await respuesta.json();
+
+                if (datos.truncated) {
+                    throw new Error("El repositorio es demasiado grande");
+                }
+
+                archivos = datos.tree.filter(archivo =>
+                    archivo.type === "blob" &&
+                    archivo.path !== "index.html" &&
+                    !archivo.path.split("/").some(parte =>
+                        parte === "node_modules" ||
+                        parte === ".github" ||
+                        parte.startsWith(".")
+                    ) &&
+                    /\.(html?|php|py|js|css|md|pdf)$/i.test(archivo.path)
+                );
+
+                mostrarArchivos(archivos);
+
+            } catch (error) {
+                contenedor.textContent =
+                    "No se pudo cargar el repositorio. " +
+                    "Puedes consultar los archivos directamente en GitHub.";
+
+                console.error(error);
+            }
+        }
+
+        // Organizar archivos por carpetas
+        function crearArbol(lista) {
+            const arbol = {
+                carpetas: Object.create(null),
+                archivos: []
+            };
+
+            lista.forEach(archivo => {
+                const partes = archivo.path.split("/");
+                const nombre = partes.pop();
+
+                let actual = arbol;
+
+                partes.forEach(parte => {
+                    if (!actual.carpetas[parte]) {
+                        actual.carpetas[parte] = {
+                            carpetas: Object.create(null),
+                            archivos: []
+                        };
+                    }
+
+                    actual = actual.carpetas[parte];
+                });
+
+                actual.archivos.push({
+                    nombre,
+                    ruta: archivo.path
+                });
+            });
+
+            return arbol;
+        }
+
+        // Crear enlaces
+        function crearEnlace(texto, url, clase) {
+            const enlace = document.createElement("a");
+
+            enlace.textContent = texto;
+            enlace.href = url;
+            enlace.className = `btn ${clase}`;
+            enlace.target = "_blank";
+            enlace.rel = "noopener noreferrer";
+
+            return enlace;
+        }
+
+        // Generar carpetas y archivos en pantalla
+        function renderizarArbol(arbol, destino) {
+
+            Object.keys(arbol.carpetas)
+                .sort((a, b) => a.localeCompare(b, "es", {
+                    numeric: true
+                }))
+                .forEach(nombre => {
+
+                    const details = document.createElement("details");
+                    details.className = "carpeta";
+
+                    const summary = document.createElement("summary");
+                    summary.textContent = "📁 " + nombre;
+
+                    const contenido = document.createElement("div");
+                    contenido.className = "contenido";
+
+                    renderizarArbol(
+                        arbol.carpetas[nombre],
+                        contenido
+                    );
+
+                    details.append(summary, contenido);
+                    destino.appendChild(details);
+                });
+
+            arbol.archivos.forEach(archivo => {
+
+                const fila = document.createElement("div");
+                fila.className = "archivo";
+
+                const nombre = document.createElement("span");
+                nombre.className = "nombre";
+                nombre.textContent = "📄 " + archivo.nombre;
+
+                const acciones = document.createElement("div");
+                acciones.className = "acciones";
+
+                const ruta = codificarRuta(archivo.ruta);
+
+                // Los HTML pueden ejecutarse en GitHub Pages
+                if (/\.html?$/i.test(archivo.nombre)) {
+                    acciones.appendChild(
+                        crearEnlace(
+                            "▶ Ver demo",
+                            pages + ruta,
+                            "demo"
+                        )
+                    );
+                }
+
+                // Los PDF pueden abrirse directamente
+                if (/\.pdf$/i.test(archivo.nombre)) {
+                    acciones.appendChild(
+                        crearEnlace(
+                            "Ver PDF",
+                            pages + ruta,
+                            "demo"
+                        )
+                    );
+                }
+
+                // Todos los archivos tienen enlace a GitHub
+                acciones.appendChild(
+                    crearEnlace(
+                        "Ver código",
+                        github + ruta,
+                        "codigo"
+                    )
+                );
+
+                fila.append(nombre, acciones);
+                destino.appendChild(fila);
+            });
+        }
+
+        // Mostrar archivos
+        function mostrarArchivos(lista) {
+            contenedor.replaceChildren();
+
+            if (lista.length === 0) {
+                contenedor.textContent =
+                    "No se encontraron archivos.";
+                return;
+            }
+
+            const arbol = crearArbol(lista);
+
+            renderizarArbol(arbol, contenedor);
+        }
+
+        // Buscador
+        document.getElementById("buscador")
+            .addEventListener("input", evento => {
+
+                const texto = evento.target.value.toLowerCase();
+
+                const filtrados = archivos.filter(archivo =>
+                    archivo.path.toLowerCase().includes(texto)
+                );
+
+                mostrarArchivos(filtrados);
+
+                if (texto) {
+                    document.querySelectorAll("details")
+                        .forEach(carpeta => {
+                            carpeta.open = true;
+                        });
+                }
+            });
+
+        cargarRepositorio();
+    </script>
 
 </body>
 </html>
