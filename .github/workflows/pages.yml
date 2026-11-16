@@ -1,0 +1,60 @@
+# Publica el repositorio en GitHub Pages con cada push a main.
+#
+# 1. Descarga el repositorio.
+# 2. Genera archivos.json (catálogo que lee el index.html).
+# 3. Sube el contenido estático como "artefacto" de Pages.
+# 4. Lo despliega con el sistema oficial de GitHub Pages.
+#
+# archivos.json se genera aquí, en el servidor de GitHub: no se hace ningún
+# commit automático al repositorio.
+
+name: Publicar en GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Permite lanzarlo a mano desde la pestaña Actions.
+  workflow_dispatch:
+
+# Permisos mínimos: leer el código y publicar en Pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Si llegan varios push seguidos, no se pisan dos despliegues a la vez.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  construir:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Generar el catálogo archivos.json
+        run: python3 scripts/generar-catalogo.py
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+
+      # Se sube la raíz tal cual: las rutas relativas de cada proyecto
+      # (css/, js/, img/, data/...) se mantienen intactas.
+      # La carpeta .git y los archivos ocultos no se incluyen.
+      - name: Subir el contenido estático
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+  desplegar:
+    needs: construir
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - name: Desplegar en GitHub Pages
+        id: despliegue
+        uses: actions/deploy-pages@v4

@@ -191,11 +191,16 @@
         const repo = "DAM26-27";
         const rama = "main";
 
-        const api = `https://api.github.com/repos/${usuario}/${repo}/git/trees/${rama}?recursive=1`;
+        // Catálogo estático generado por GitHub Actions
+        // (scripts/generar-catalogo.py). Ya no se consulta la API de GitHub,
+        // así que no hay límite de peticiones ni error 403.
+        const catalogo = "archivos.json";
 
         const github = `https://github.com/${usuario}/${repo}/blob/${rama}/`;
 
-        const pages = `https://${usuario}.github.io/${repo}/`;
+        // Las demos y los PDF se abren con rutas relativas a esta página:
+        // funcionan igual en GitHub Pages y en un servidor local.
+        const pages = "./";
 
         const contenedor = document.getElementById("repositorio");
 
@@ -212,10 +217,11 @@
         // Obtener todos los archivos del repositorio
         async function cargarRepositorio() {
             try {
-                const respuesta = await fetch(api);
+                // no-cache: tras cada despliegue se ve el catálogo actualizado
+                const respuesta = await fetch(catalogo, { cache: "no-cache" });
 
                 if (!respuesta.ok) {
-                    throw new Error("No se pudo consultar GitHub");
+                    throw new Error("No se pudo cargar archivos.json");
                 }
 
                 const datos = await respuesta.json();
@@ -224,9 +230,13 @@
                     throw new Error("El repositorio es demasiado grande");
                 }
 
+                // El script ya filtra el catálogo; este filtro se mantiene
+                // como segunda barrera por si archivos.json se genera a mano.
                 archivos = datos.tree.filter(archivo =>
                     archivo.type === "blob" &&
                     archivo.path !== "index.html" &&
+                    archivo.path !== "archivos.json" &&
+                    !archivo.path.startsWith("scripts/") &&
                     !archivo.path.split("/").some(parte =>
                         parte === "node_modules" ||
                         parte === ".github" ||
